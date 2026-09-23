@@ -5,8 +5,8 @@
 ## 站点是什么
 
 - 本地目录：`C:\Users\王奕博\.zcode\workspace\default\ds408`
-- 计划仓库：`jlshdsdk/kaoyan-408-ds`
-- 计划地址：`https://jlshdsdk.github.io/kaoyan-408-ds/`
+- 仓库：`https://github.com/jlshdsdk/kaoyan-408-ds`
+- 已上线：`https://jlshdsdk.github.io/kaoyan-408-ds/`（首页和 `l/seq-def.html` 已返回 200）
 - 形式：多页静态 HTML。首页只放目录，点进 `l/<id>.html` 才加载那一节的动画和代码。单页最大约 14KB，首页约 14KB，整站 HTML 约 440KB。
 - 目录来源：B 站合集「数据结构(精美动画演示讲解)」6 个分栏、67 节。标题写在 `catalog.json`，不要改 id。
 
