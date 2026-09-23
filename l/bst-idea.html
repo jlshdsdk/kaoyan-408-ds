@@ -1,0 +1,96 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>二叉搜索树(二叉排序树)(二叉查找树)</title>
+<link rel="stylesheet" href="../assets/css/site.css">
+<link rel="icon" href="data:,">
+</head>
+<body>
+<header class="top">
+  <a class="brand" href="../index.html">408 数据结构</a>
+  <span class="muted">35 / 67</span>
+</header>
+<main class="wrap lesson">
+  <p class="crumb">查找</p>
+  <h1>二叉搜索树(二叉排序树)(二叉查找树)</h1>
+  <p>左支更小、右支更大，边插边成型</p>
+  <div class="stage-wrap"><canvas id="stage" width="960" height="360"></canvas></div>
+  <p id="note"></p>
+  <div class="controls">
+    <button id="prev" type="button">上一步</button>
+    <button id="play" type="button">播放</button>
+    <button id="next" type="button">下一步</button>
+    <span id="step" class="muted"></span>
+    <span class="muted">方向键也可切换</span>
+  </div>
+  <section class="panel">
+    <h2>要点</h2>
+    <ul><li>插入时从根往下，比当前结点决定左右</li><li>同一插入序列得到同一棵BST形状</li><li>查找路径与插入时走过的比较一致</li><li>中序遍历结果必为升序</li></ul>
+    <p class="muted">查找/插入最好O(1)、平均O(log n)、最坏链状O(n)；空间O(n)</p>
+  </section>
+  <section class="panel">
+    <h2>完整 C++ 代码</h2>
+    <p><a href="../c/bst-idea.cpp" download>下载 .cpp</a>
+    <button id="copy" type="button">复制</button></p>
+    <pre><code id="code">// 二叉搜索树：左小右大；查找演示
+#include &lt;iostream&gt;
+using namespace std;
+
+struct Node {
+    int key;
+    Node* left;
+    Node* right;
+};
+
+Node* insert(Node* p, int key) {
+    if (!p) return new Node{key, nullptr, nullptr};
+    if (key &lt; p-&gt;key) p-&gt;left = insert(p-&gt;left, key);
+    else if (key &gt; p-&gt;key) p-&gt;right = insert(p-&gt;right, key);
+    // 相等则不插
+    return p;
+}
+
+// 找到返回结点指针，否则 nullptr；打印比较路径
+Node* search(Node* p, int key) {
+    while (p) {
+        cout &lt;&lt; &quot;visit &quot; &lt;&lt; p-&gt;key &lt;&lt; &quot;\n&quot;;
+        if (key == p-&gt;key) return p;
+        if (key &lt; p-&gt;key) p = p-&gt;left;
+        else p = p-&gt;right;
+    }
+    return nullptr;
+}
+
+void freeTree(Node* p) {
+    if (!p) return;
+    freeTree(p-&gt;left);
+    freeTree(p-&gt;right);
+    delete p;
+}
+
+int main() {
+    int seq[] = {8, 3, 10, 1, 6, 14, 4};
+    Node* root = nullptr;
+    for (int x : seq) root = insert(root, x);
+
+    cout &lt;&lt; &quot;search 6\n&quot;;
+    if (search(root, 6)) cout &lt;&lt; &quot;found\n&quot;;
+    else cout &lt;&lt; &quot;not found\n&quot;;
+
+    cout &lt;&lt; &quot;search 7\n&quot;;
+    if (search(root, 7)) cout &lt;&lt; &quot;found\n&quot;;
+    else cout &lt;&lt; &quot;not found\n&quot;;
+
+    freeTree(root);
+    return 0;
+}
+</code></pre>
+  </section>
+  <nav class="pager"><a href="bs-tree-asl.html">上一节<br>折半查找的判定树和平均查找长度(ASL)</a><a href="bst-build.html">下一节<br>二叉搜索树代码 - 查找, 插入, 构建(C/C++实现)</a></nav>
+</main>
+<script>window.LESSON_ANIM={"kind":"graph","frames":[{"note":"插入 8，作为根","nodes":[{"id":"8","v":"8","x":0.5,"y":0.12}],"edges":[],"hl":["8"]},{"note":"插入 3：3\u003c8，挂左","nodes":[{"id":"8","v":"8","x":0.5,"y":0.12},{"id":"3","v":"3","x":0.28,"y":0.38}],"edges":[{"u":"8","v":"3"}],"hl":["3"]},{"note":"插入 10：10>8，挂右","nodes":[{"id":"8","v":"8","x":0.5,"y":0.12},{"id":"3","v":"3","x":0.28,"y":0.38},{"id":"10","v":"10","x":0.72,"y":0.38}],"edges":[{"u":"8","v":"3"},{"u":"8","v":"10"}],"hl":["10"]},{"note":"插入 1：1\u003c8 且 1\u003c3，挂 3 左","nodes":[{"id":"8","v":"8","x":0.5,"y":0.1},{"id":"3","v":"3","x":0.28,"y":0.36},{"id":"10","v":"10","x":0.72,"y":0.36},{"id":"1","v":"1","x":0.14,"y":0.62}],"edges":[{"u":"8","v":"3"},{"u":"8","v":"10"},{"u":"3","v":"1"}],"hl":["1"]},{"note":"插入 6：6\u003c8 且 6>3，挂 3 右","nodes":[{"id":"8","v":"8","x":0.5,"y":0.1},{"id":"3","v":"3","x":0.28,"y":0.36},{"id":"10","v":"10","x":0.72,"y":0.36},{"id":"1","v":"1","x":0.14,"y":0.62},{"id":"6","v":"6","x":0.4,"y":0.62}],"edges":[{"u":"8","v":"3"},{"u":"8","v":"10"},{"u":"3","v":"1"},{"u":"3","v":"6"}],"hl":["6"]},{"note":"插入 14：14>8 且 14>10，挂 10 右","nodes":[{"id":"8","v":"8","x":0.5,"y":0.1},{"id":"3","v":"3","x":0.28,"y":0.36},{"id":"10","v":"10","x":0.72,"y":0.36},{"id":"1","v":"1","x":0.14,"y":0.62},{"id":"6","v":"6","x":0.4,"y":0.62},{"id":"14","v":"14","x":0.86,"y":0.62}],"edges":[{"u":"8","v":"3"},{"u":"8","v":"10"},{"u":"3","v":"1"},{"u":"3","v":"6"},{"u":"10","v":"14"}],"hl":["14"]},{"note":"插入 4：走到 6 的左孩子，树成型","nodes":[{"id":"8","v":"8","x":0.5,"y":0.08},{"id":"3","v":"3","x":0.28,"y":0.32},{"id":"10","v":"10","x":0.72,"y":0.32},{"id":"1","v":"1","x":0.14,"y":0.56},{"id":"6","v":"6","x":0.4,"y":0.56},{"id":"14","v":"14","x":0.86,"y":0.56},{"id":"4","v":"4","x":0.32,"y":0.82}],"edges":[{"u":"8","v":"3"},{"u":"8","v":"10"},{"u":"3","v":"1"},{"u":"3","v":"6"},{"u":"10","v":"14"},{"u":"6","v":"4"}],"hl":["4"]},{"note":"查找 6：8→3→6，命中","nodes":[{"id":"8","v":"8","x":0.5,"y":0.08},{"id":"3","v":"3","x":0.28,"y":0.32},{"id":"10","v":"10","x":0.72,"y":0.32},{"id":"1","v":"1","x":0.14,"y":0.56},{"id":"6","v":"6","x":0.4,"y":0.56},{"id":"14","v":"14","x":0.86,"y":0.56},{"id":"4","v":"4","x":0.32,"y":0.82}],"edges":[{"u":"8","v":"3"},{"u":"8","v":"10"},{"u":"3","v":"1"},{"u":"3","v":"6"},{"u":"10","v":"14"},{"u":"6","v":"4"}],"hl":["8","3","6"]},{"note":"查找 7：8→3→6→空，失败","nodes":[{"id":"8","v":"8","x":0.5,"y":0.08},{"id":"3","v":"3","x":0.28,"y":0.32},{"id":"10","v":"10","x":0.72,"y":0.32},{"id":"1","v":"1","x":0.14,"y":0.56},{"id":"6","v":"6","x":0.4,"y":0.56},{"id":"14","v":"14","x":0.86,"y":0.56},{"id":"4","v":"4","x":0.32,"y":0.82}],"edges":[{"u":"8","v":"3"},{"u":"8","v":"10"},{"u":"3","v":"1"},{"u":"3","v":"6"},{"u":"10","v":"14"},{"u":"6","v":"4"}],"hl":["8","3","6"]}]};</script>
+<script src="../assets/js/anim.js"></script>
+</body>
+</html>

@@ -1,0 +1,233 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>B+树</title>
+<link rel="stylesheet" href="../assets/css/site.css">
+<link rel="icon" href="data:,">
+</head>
+<body>
+<header class="top">
+  <a class="brand" href="../index.html">408 数据结构</a>
+  <span class="muted">44 / 67</span>
+</header>
+<main class="wrap lesson">
+  <p class="crumb">查找</p>
+  <h1>B+树</h1>
+  <p>B+树关键字全在叶子，叶子串成链表</p>
+  <div class="stage-wrap"><canvas id="stage" width="960" height="360"></canvas></div>
+  <p id="note"></p>
+  <div class="controls">
+    <button id="prev" type="button">上一步</button>
+    <button id="play" type="button">播放</button>
+    <button id="next" type="button">下一步</button>
+    <span id="step" class="muted"></span>
+    <span class="muted">方向键也可切换</span>
+  </div>
+  <section class="panel">
+    <h2>要点</h2>
+    <ul><li>内部结点只作索引，不存真实记录</li><li>所有关键字都出现在叶子层</li><li>叶子用指针串成有序链表，适合范围扫</li><li>分裂时索引上提的是右侧叶子最小键的副本</li></ul>
+    <p class="muted">查找/插入最好最坏平均 O(log_m n)；顺序遍历叶子 O(n)；空间 O(n)</p>
+  </section>
+  <section class="panel">
+    <h2>完整 C++ 代码</h2>
+    <p><a href="../c/bplus.cpp" download>下载 .cpp</a>
+    <button id="copy" type="button">复制</button></p>
+    <pre><code id="code">// B+ tree order 3: keys in leaves + leaf linked list; insert 5 8 10 15 20
+#include &lt;iostream&gt;
+using namespace std;
+
+const int ORDER = 3;
+const int MAX_KEY = ORDER - 1; // 2
+
+struct Leaf {
+    int n;
+    int key[ORDER]; // temp overflow to 3
+    Leaf* next;
+    Leaf() : n(0), next(nullptr) {
+        for (int i = 0; i &lt; ORDER; i++) key[i] = 0;
+    }
+};
+
+struct Internal {
+    int n;
+    int key[ORDER];
+    void* child[ORDER + 1]; // Leaf* or Internal*
+    bool childIsLeaf;
+    Internal() : n(0), childIsLeaf(true) {
+        for (int i = 0; i &lt; ORDER; i++) key[i] = 0;
+        for (int i = 0; i &lt;= ORDER; i++) child[i] = nullptr;
+    }
+};
+
+Internal* root = nullptr;
+Leaf* head = nullptr; // leftmost leaf
+
+void printLeafChain() {
+    cout &lt;&lt; &quot;leaves:&quot;;
+    for (Leaf* p = head; p; p = p-&gt;next) {
+        cout &lt;&lt; &quot; [&quot;;
+        for (int i = 0; i &lt; p-&gt;n; i++) {
+            if (i) cout &lt;&lt; &quot; &quot;;
+            cout &lt;&lt; p-&gt;key[i];
+        }
+        cout &lt;&lt; &quot;]&quot;;
+    }
+    cout &lt;&lt; &quot;\n&quot;;
+}
+
+int countLeafKeys() {
+    int s = 0;
+    for (Leaf* p = head; p; p = p-&gt;next) s += p-&gt;n;
+    return s;
+}
+
+// split full leaf (n==3); copy separator (min of right) up
+void splitLeaf(Leaf* L, int&amp; upKey, Leaf*&amp; right) {
+    right = new Leaf();
+    // left keeps 1 key, right gets 2; upKey = min(right)
+    L-&gt;n = 1;
+    right-&gt;n = 2;
+    right-&gt;key[0] = L-&gt;key[1];
+    right-&gt;key[1] = L-&gt;key[2];
+    upKey = right-&gt;key[0];
+    right-&gt;next = L-&gt;next;
+    L-&gt;next = right;
+}
+
+void insertIntoLeaf(Leaf* L, int k) {
+    int i = L-&gt;n - 1;
+    while (i &gt;= 0 &amp;&amp; k &lt; L-&gt;key[i]) {
+        L-&gt;key[i + 1] = L-&gt;key[i];
+        i--;
+    }
+    L-&gt;key[i + 1] = k;
+    L-&gt;n++;
+}
+
+// insert separator into internal; may overflow
+void insertSep(Internal* node, int sep, void* rightChild, int childIndex) {
+    for (int j = node-&gt;n; j &gt; childIndex; j--) {
+        node-&gt;key[j] = node-&gt;key[j - 1];
+        node-&gt;child[j + 1] = node-&gt;child[j];
+    }
+    node-&gt;key[childIndex] = sep;
+    node-&gt;child[childIndex + 1] = rightChild;
+    node-&gt;n++;
+}
+
+bool insertRecursive(Internal* node, int k, int&amp; upKey, void*&amp; upRight);
+
+bool insertRecursive(Internal* node, int k, int&amp; upKey, void*&amp; upRight) {
+    upRight = nullptr;
+    if (node-&gt;childIsLeaf) {
+        int i = 0;
+        while (i &lt; node-&gt;n &amp;&amp; k &gt;= node-&gt;key[i]) i++;
+        Leaf* L = (Leaf*)node-&gt;child[i];
+        insertIntoLeaf(L, k);
+        if (L-&gt;n &lt;= MAX_KEY) return false;
+        Leaf* R;
+        int sep;
+        splitLeaf(L, sep, R);
+        insertSep(node, sep, R, i);
+        if (node-&gt;n &lt;= MAX_KEY) return false;
+        // split internal
+        Internal* nr = new Internal();
+        nr-&gt;childIsLeaf = node-&gt;childIsLeaf;
+        // node has 3 keys, 4 children; push middle up
+        int mid = 1;
+        upKey = node-&gt;key[mid];
+        nr-&gt;n = 1;
+        nr-&gt;key[0] = node-&gt;key[2];
+        nr-&gt;child[0] = node-&gt;child[2];
+        nr-&gt;child[1] = node-&gt;child[3];
+        node-&gt;n = 1;
+        upRight = nr;
+        return true;
+    }
+    int i = 0;
+    while (i &lt; node-&gt;n &amp;&amp; k &gt;= node-&gt;key[i]) i++;
+    int childUp;
+    void* childRight;
+    bool split = insertRecursive((Internal*)node-&gt;child[i], k, childUp, childRight);
+    if (!split) return false;
+    insertSep(node, childUp, childRight, i);
+    if (node-&gt;n &lt;= MAX_KEY) return false;
+    Internal* nr = new Internal();
+    nr-&gt;childIsLeaf = false;
+    int mid = 1;
+    upKey = node-&gt;key[mid];
+    nr-&gt;n = 1;
+    nr-&gt;key[0] = node-&gt;key[2];
+    nr-&gt;child[0] = node-&gt;child[2];
+    nr-&gt;child[1] = node-&gt;child[3];
+    node-&gt;n = 1;
+    upRight = nr;
+    return true;
+}
+
+void insertKey(int k) {
+    if (!head) {
+        head = new Leaf();
+        head-&gt;key[0] = k;
+        head-&gt;n = 1;
+        return;
+    }
+    if (!root) {
+        // only one leaf
+        insertIntoLeaf(head, k);
+        if (head-&gt;n &lt;= MAX_KEY) return;
+        Leaf* R;
+        int sep;
+        splitLeaf(head, sep, R);
+        root = new Internal();
+        root-&gt;childIsLeaf = true;
+        root-&gt;key[0] = sep;
+        root-&gt;child[0] = head;
+        root-&gt;child[1] = R;
+        root-&gt;n = 1;
+        return;
+    }
+    int upKey;
+    void* upRight;
+    bool split = insertRecursive(root, k, upKey, upRight);
+    if (split) {
+        Internal* nr = new Internal();
+        nr-&gt;childIsLeaf = false;
+        nr-&gt;key[0] = upKey;
+        nr-&gt;child[0] = root;
+        nr-&gt;child[1] = upRight;
+        nr-&gt;n = 1;
+        root = nr;
+    }
+}
+
+int main() {
+    int a[] = {5, 8, 10, 15, 20};
+    for (int k : a) {
+        insertKey(k);
+        cout &lt;&lt; &quot;after &quot; &lt;&lt; k &lt;&lt; &quot; &quot;;
+        printLeafChain();
+    }
+    int total = countLeafKeys();
+    bool ok = total == 5;
+    // verify sorted along chain
+    int prev = -1;
+    for (Leaf* p = head; p &amp;&amp; ok; p = p-&gt;next) {
+        for (int i = 0; i &lt; p-&gt;n; i++) {
+            if (p-&gt;key[i] &lt;= prev) ok = false;
+            prev = p-&gt;key[i];
+        }
+    }
+    cout &lt;&lt; (ok ? &quot;B+ OK\n&quot; : &quot;B+ BAD\n&quot;);
+    return 0;
+}
+</code></pre>
+  </section>
+  <nav class="pager"><a href="b-delete.html">上一节<br>B树(B-树) - 删除</a><a href="hash.html">下一节<br>散列表(哈希表) - 散列函数, 冲突处理, 平均查找长度(ASL)</a></nav>
+</main>
+<script>window.LESSON_ANIM={"kind":"text","frames":[{"note":"插 5：只有一片叶子 [5]","lines":["leaf: [5] -> null","index: (none)"],"cur":0},{"note":"插 8：叶子变成 [5 8]","lines":["leaf: [5 8] -> null","index: (none)"],"cur":0},{"note":"插 10：叶子出现 3 键，准备分裂","lines":["leaf: [5 8 10] overflow","next: split leaf"],"cur":0},{"note":"分裂为 [5] 与 [8 10]，索引上提 8","lines":["index: [8]","leaf: [5] -> [8 10]"],"cur":1},{"note":"插 15：右叶变 [8 10 15] 再满","lines":["index: [8]","leaf: [5] -> [8 10 15]"],"cur":1},{"note":"右叶分裂成 [8] 与 [10 15]，上提 10","lines":["index: [8 10]","leaf: [5]->[8]->[10 15]"],"cur":0},{"note":"插 20：最右叶 [10 15 20] 再满","lines":["index: [8 10]","leaf: ... -> [10 15 20]"],"cur":1},{"note":"再裂成 [10] 与 [15 20]，上提 15；索引层也可能再裂","lines":["index grows / may split","leaf: [5]->[8]->[10]->[15 20]"],"cur":1},{"note":"沿叶子链扫完：5 8 10 15 20","lines":["chain: 5 8 10 15 20","all keys live in leaves"],"cur":0},{"note":"和 B 树比：B+ 内部只索引，范围查走链表","lines":["B: keys also inside","B+: index only + leaf list"],"cur":1}]};</script>
+<script src="../assets/js/anim.js"></script>
+</body>
+</html>

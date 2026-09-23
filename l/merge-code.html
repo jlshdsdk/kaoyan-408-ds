@@ -1,0 +1,84 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>归并排序代码(C/C++递归实现)</title>
+<link rel="stylesheet" href="../assets/css/site.css">
+<link rel="icon" href="data:,">
+</head>
+<body>
+<header class="top">
+  <a class="brand" href="../index.html">408 数据结构</a>
+  <span class="muted">62 / 67</span>
+</header>
+<main class="wrap lesson">
+  <p class="crumb">排序</p>
+  <h1>归并排序代码(C/C++递归实现)</h1>
+  <p>递归拆半再归并，每次合并后打印</p>
+  <div class="stage-wrap"><canvas id="stage" width="960" height="360"></canvas></div>
+  <p id="note"></p>
+  <div class="controls">
+    <button id="prev" type="button">上一步</button>
+    <button id="play" type="button">播放</button>
+    <button id="next" type="button">下一步</button>
+    <span id="step" class="muted"></span>
+    <span class="muted">方向键也可切换</span>
+  </div>
+  <section class="panel">
+    <h2>要点</h2>
+    <ul><li>先递归左半、再递归右半，最后合并</li><li>合并用辅助数组，a[i]&lt;=a[j] 取左保证稳定</li><li>每次 merge 后打印当前整表状态</li><li>空区间与单元素区间直接返回</li></ul>
+    <p class="muted">时间最好/最坏/平均 O(n log n)；空间 O(n)；稳定</p>
+  </section>
+  <section class="panel">
+    <h2>完整 C++ 代码</h2>
+    <p><a href="../c/merge-code.cpp" download>下载 .cpp</a>
+    <button id="copy" type="button">复制</button></p>
+    <pre><code id="code">// 归并排序代码（递归）：打印每一层归并结果
+#include &lt;iostream&gt;
+using namespace std;
+
+void printArr(const int a[], int n) {
+    for (int i = 0; i &lt; n; i++) {
+        if (i) cout &lt;&lt; &quot; &quot;;
+        cout &lt;&lt; a[i];
+    }
+    cout &lt;&lt; &quot;\n&quot;;
+}
+
+void merge(int a[], int L, int M, int R, int tmp[]) {
+    int i = L, j = M + 1, k = L;
+    while (i &lt;= M &amp;&amp; j &lt;= R) {
+        if (a[i] &lt;= a[j]) tmp[k++] = a[i++];
+        else tmp[k++] = a[j++];
+    }
+    while (i &lt;= M) tmp[k++] = a[i++];
+    while (j &lt;= R) tmp[k++] = a[j++];
+    for (int t = L; t &lt;= R; t++) a[t] = tmp[t];
+}
+
+void mergeSort(int a[], int L, int R, int tmp[], int n) {
+    if (L &gt;= R) return;
+    int M = L + (R - L) / 2;
+    mergeSort(a, L, M, tmp, n);
+    mergeSort(a, M + 1, R, tmp, n);
+    merge(a, L, M, R, tmp);
+    printArr(a, n);  // 每次归并后打印整表
+}
+
+int main() {
+    int a[] = {5, 2, 8, 1, 9, 3};
+    int n = 6;
+    int tmp[6];
+    printArr(a, n);
+    mergeSort(a, 0, n - 1, tmp, n);
+    return 0;
+}
+</code></pre>
+  </section>
+  <nav class="pager"><a href="merge-idea.html">上一节<br>归并排序</a><a href="radix-idea.html">下一节<br>基数排序</a></nav>
+</main>
+<script>window.LESSON_ANIM={"kind":"bars","frames":[{"note":"初始数组，递归拆分","vals":[5,2,8,1,9,3],"hl":[]},{"note":"归并 [5][2] → 2 5","vals":[2,5,8,1,9,3],"hl":[0,1]},{"note":"归并 [2,5][8] → 2 5 8","vals":[2,5,8,1,9,3],"hl":[0,1,2]},{"note":"归并 [1][9] → 1 9","vals":[2,5,8,1,9,3],"hl":[3,4]},{"note":"归并 [1,9][3] → 1 3 9","vals":[2,5,8,1,3,9],"hl":[3,4,5]},{"note":"归并左右两半成长串","vals":[1,2,3,5,8,9],"hl":[0,1,2,3,4,5],"done":[0,1,2,3,4,5]},{"note":"最终有序：1 2 3 5 8 9","vals":[1,2,3,5,8,9],"hl":[],"done":[0,1,2,3,4,5]},{"note":"稳定归并完成，辅助空间可释放","vals":[1,2,3,5,8,9],"hl":[],"done":[0,1,2,3,4,5]}]};</script>
+<script src="../assets/js/anim.js"></script>
+</body>
+</html>

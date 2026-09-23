@@ -1,0 +1,113 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>二叉树的构造 - 由遍历序列构造二叉树</title>
+<link rel="stylesheet" href="../assets/css/site.css">
+<link rel="icon" href="data:,">
+</head>
+<body>
+<header class="top">
+  <a class="brand" href="../index.html">408 数据结构</a>
+  <span class="muted">9 / 67</span>
+</header>
+<main class="wrap lesson">
+  <p class="crumb">树</p>
+  <h1>二叉树的构造 - 由遍历序列构造二叉树</h1>
+  <p>前序定根，中序切开左右</p>
+  <div class="stage-wrap"><canvas id="stage" width="960" height="360"></canvas></div>
+  <p id="note"></p>
+  <div class="controls">
+    <button id="prev" type="button">上一步</button>
+    <button id="play" type="button">播放</button>
+    <button id="next" type="button">下一步</button>
+    <span id="step" class="muted"></span>
+    <span class="muted">方向键也可切换</span>
+  </div>
+  <section class="panel">
+    <h2>要点</h2>
+    <ul><li>前序第一个字符必是当前子树的根</li><li>在中序里找到根，左边是左子树中序</li><li>按左子树长度切前序，递归构造两边</li><li>前序+中序可唯一确定一棵二叉树</li><li>序列长度不符或字符缺失应报 error</li></ul>
+    <p class="muted">时间 O(n^2) 朴素找根；可用哈希降至 O(n)。空间 O(h)</p>
+  </section>
+  <section class="panel">
+    <h2>完整 C++ 代码</h2>
+    <p><a href="../c/btree-build.cpp" download>下载 .cpp</a>
+    <button id="copy" type="button">复制</button></p>
+    <pre><code id="code">// 由前序 + 中序构造二叉树
+#include &lt;iostream&gt;
+#include &lt;string&gt;
+using namespace std;
+
+struct Node {
+    char data;
+    Node *l, *r;
+    explicit Node(char c) : data(c), l(nullptr), r(nullptr) {}
+};
+
+Node* build(const string&amp; pre, const string&amp; in) {
+    if (pre.empty() || in.empty() || pre.size() != in.size()) return nullptr;
+    char root = pre[0];
+    size_t k = in.find(root);
+    if (k == string::npos) {
+        cout &lt;&lt; &quot;error\n&quot;;
+        return nullptr;
+    }
+    Node* t = new Node(root);
+    string inL = in.substr(0, k);
+    string inR = in.substr(k + 1);
+    string preL = pre.substr(1, inL.size());
+    string preR = pre.substr(1 + inL.size());
+    t-&gt;l = build(preL, inL);
+    t-&gt;r = build(preR, inR);
+    return t;
+}
+
+void preorder(Node* t) {
+    if (!t) return;
+    cout &lt;&lt; t-&gt;data;
+    preorder(t-&gt;l);
+    preorder(t-&gt;r);
+}
+
+void inorder(Node* t) {
+    if (!t) return;
+    inorder(t-&gt;l);
+    cout &lt;&lt; t-&gt;data;
+    inorder(t-&gt;r);
+}
+
+void free_tree(Node* t) {
+    if (!t) return;
+    free_tree(t-&gt;l);
+    free_tree(t-&gt;r);
+    delete t;
+}
+
+int main() {
+    string pre = &quot;ABDECF&quot;;
+    string in = &quot;DBEAFC&quot;;
+    cout &lt;&lt; &quot;pre=&quot; &lt;&lt; pre &lt;&lt; &quot;\n&quot;;
+    cout &lt;&lt; &quot;in=&quot; &lt;&lt; in &lt;&lt; &quot;\n&quot;;
+
+    Node* root = build(pre, in);
+    if (!root) return 0;
+
+    cout &lt;&lt; &quot;built_pre=&quot;;
+    preorder(root);
+    cout &lt;&lt; &quot;\n&quot;;
+    cout &lt;&lt; &quot;built_in=&quot;;
+    inorder(root);
+    cout &lt;&lt; &quot;\n&quot;;
+
+    free_tree(root);
+    return 0;
+}
+</code></pre>
+  </section>
+  <nav class="pager"><a href="btree-trav.html">上一节<br>二叉树的遍历 - 前序，中序，后序，层序</a><a href="thread-def.html">下一节<br>线索二叉树(上) - 概念, 先序/中序/后序线索化</a></nav>
+</main>
+<script>window.LESSON_ANIM={"kind":"graph","frames":[{"note":"已知前序 ABDECF、中序 DBEAFC，开始还原。","nodes":[],"edges":[],"hl":[]},{"note":"前序首字母 A 为根；中序在 A 处切开。","nodes":[{"id":"A","v":"A","x":0.5,"y":0.12}],"edges":[],"hl":["A"]},{"note":"中序左段 DBE → 左子树；右段 FC → 右子树。","nodes":[{"id":"A","v":"A","x":0.5,"y":0.12}],"edges":[],"hl":["A"]},{"note":"左子树前序 BDE，首字母 B 挂到 A 左。","nodes":[{"id":"A","v":"A","x":0.5,"y":0.12},{"id":"B","v":"B","x":0.28,"y":0.42}],"edges":[{"u":"A","v":"B","hl":true}],"hl":["B"]},{"note":"中序 DBE：D|B|E，故 B 左是 D，右是 E。","nodes":[{"id":"A","v":"A","x":0.5,"y":0.12},{"id":"B","v":"B","x":0.28,"y":0.42}],"edges":[{"u":"A","v":"B"}],"hl":["B"]},{"note":"长出叶子 D。","nodes":[{"id":"A","v":"A","x":0.5,"y":0.12},{"id":"B","v":"B","x":0.28,"y":0.42},{"id":"D","v":"D","x":0.16,"y":0.78}],"edges":[{"u":"A","v":"B"},{"u":"B","v":"D","hl":true}],"hl":["D"]},{"note":"长出叶子 E，左子树完成。","nodes":[{"id":"A","v":"A","x":0.5,"y":0.12},{"id":"B","v":"B","x":0.28,"y":0.42},{"id":"D","v":"D","x":0.16,"y":0.78},{"id":"E","v":"E","x":0.4,"y":0.78}],"edges":[{"u":"A","v":"B"},{"u":"B","v":"D"},{"u":"B","v":"E","hl":true}],"hl":["E"]},{"note":"右子树前序 CF，首字母 C 挂到 A 右。","nodes":[{"id":"A","v":"A","x":0.5,"y":0.12},{"id":"B","v":"B","x":0.28,"y":0.42},{"id":"C","v":"C","x":0.72,"y":0.42},{"id":"D","v":"D","x":0.16,"y":0.78},{"id":"E","v":"E","x":0.4,"y":0.78}],"edges":[{"u":"A","v":"B"},{"u":"A","v":"C","hl":true},{"u":"B","v":"D"},{"u":"B","v":"E"}],"hl":["C"]},{"note":"中序 FC：F|C|空，故 C 只有左孩 F。","nodes":[{"id":"A","v":"A","x":0.5,"y":0.12},{"id":"B","v":"B","x":0.28,"y":0.42},{"id":"C","v":"C","x":0.72,"y":0.42},{"id":"D","v":"D","x":0.16,"y":0.78},{"id":"E","v":"E","x":0.4,"y":0.78}],"edges":[{"u":"A","v":"B"},{"u":"A","v":"C"},{"u":"B","v":"D"},{"u":"B","v":"E"}],"hl":["C"]},{"note":"长出 F，整棵树还原完毕。","nodes":[{"id":"A","v":"A","x":0.5,"y":0.12},{"id":"B","v":"B","x":0.28,"y":0.42},{"id":"C","v":"C","x":0.72,"y":0.42},{"id":"D","v":"D","x":0.16,"y":0.78},{"id":"E","v":"E","x":0.4,"y":0.78},{"id":"F","v":"F","x":0.72,"y":0.78}],"edges":[{"u":"A","v":"B"},{"u":"A","v":"C"},{"u":"B","v":"D"},{"u":"B","v":"E"},{"u":"C","v":"F","hl":true}],"hl":["F"]},{"note":"校验：前序 ABDECF，中序 DBEAFC。","nodes":[{"id":"A","v":"A","x":0.5,"y":0.12},{"id":"B","v":"B","x":0.28,"y":0.42},{"id":"C","v":"C","x":0.72,"y":0.42},{"id":"D","v":"D","x":0.16,"y":0.78},{"id":"E","v":"E","x":0.4,"y":0.78},{"id":"F","v":"F","x":0.72,"y":0.78}],"edges":[{"u":"A","v":"B"},{"u":"A","v":"C"},{"u":"B","v":"D"},{"u":"B","v":"E"},{"u":"C","v":"F"}],"hl":["A","B","C","D","E","F"]},{"note":"口诀：前序定根，中序分左右，递归下去。","nodes":[{"id":"A","v":"A","x":0.5,"y":0.12},{"id":"B","v":"B","x":0.28,"y":0.42},{"id":"C","v":"C","x":0.72,"y":0.42},{"id":"D","v":"D","x":0.16,"y":0.78},{"id":"E","v":"E","x":0.4,"y":0.78},{"id":"F","v":"F","x":0.72,"y":0.78}],"edges":[{"u":"A","v":"B"},{"u":"A","v":"C"},{"u":"B","v":"D"},{"u":"B","v":"E"},{"u":"C","v":"F"}],"hl":["A"]}]};</script>
+<script src="../assets/js/anim.js"></script>
+</body>
+</html>

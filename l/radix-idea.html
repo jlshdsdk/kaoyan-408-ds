@@ -1,0 +1,84 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>基数排序</title>
+<link rel="stylesheet" href="../assets/css/site.css">
+<link rel="icon" href="data:,">
+</head>
+<body>
+<header class="top">
+  <a class="brand" href="../index.html">408 数据结构</a>
+  <span class="muted">63 / 67</span>
+</header>
+<main class="wrap lesson">
+  <p class="crumb">排序</p>
+  <h1>基数排序</h1>
+  <p>LSD 按位分配进桶，再按序收集</p>
+  <div class="stage-wrap"><canvas id="stage" width="960" height="360"></canvas></div>
+  <p id="note"></p>
+  <div class="controls">
+    <button id="prev" type="button">上一步</button>
+    <button id="play" type="button">播放</button>
+    <button id="next" type="button">下一步</button>
+    <span id="step" class="muted"></span>
+    <span class="muted">方向键也可切换</span>
+  </div>
+  <section class="panel">
+    <h2>要点</h2>
+    <ul><li>最低位优先：先个位桶，再十位桶</li><li>同桶内保持原相对次序，故整体稳定</li><li>分配是入桶，收集是按桶号 0..9 接回</li><li>位数固定时时间近似线性</li></ul>
+    <p class="muted">时间 O(d(n+r))，d 位数 r 基数；空间 O(n+r)；稳定</p>
+  </section>
+  <section class="panel">
+    <h2>完整 C++ 代码</h2>
+    <p><a href="../c/radix-idea.cpp" download>下载 .cpp</a>
+    <button id="copy" type="button">复制</button></p>
+    <pre><code id="code">// 基数排序思路：LSD，先按个位再按十位分配收集
+#include &lt;iostream&gt;
+using namespace std;
+
+void printArr(const int a[], int n) {
+    for (int i = 0; i &lt; n; i++) {
+        if (i) cout &lt;&lt; &quot; &quot;;
+        cout &lt;&lt; a[i];
+    }
+    cout &lt;&lt; &quot;\n&quot;;
+}
+
+// 按某十进制位（exp=1 个位，exp=10 十位）分配到 10 个桶再收集
+void countPass(int a[], int n, int exp) {
+    int bucket[10][8];
+    int cnt[10] = {0};
+    for (int i = 0; i &lt; n; i++) {
+        int d = (a[i] / exp) % 10;
+        bucket[d][cnt[d]++] = a[i];
+    }
+    int k = 0;
+    for (int d = 0; d &lt; 10; d++) {
+        for (int j = 0; j &lt; cnt[d]; j++) a[k++] = bucket[d][j];
+    }
+}
+
+void radixSort(int a[], int n) {
+    countPass(a, n, 1);   // 个位
+    printArr(a, n);
+    countPass(a, n, 10);  // 十位
+    printArr(a, n);
+}
+
+int main() {
+    int a[] = {21, 15, 8, 32, 4, 27};
+    int n = 6;
+    printArr(a, n);
+    radixSort(a, n);
+    return 0;
+}
+</code></pre>
+  </section>
+  <nav class="pager"><a href="merge-code.html">上一节<br>归并排序代码(C/C++递归实现)</a><a href="radix-code.html">下一节<br>基数排序代码(C/C++链式实现)</a></nav>
+</main>
+<script>window.LESSON_ANIM={"kind":"bars","frames":[{"note":"初始：21 15 8 32 4 27","vals":[21,15,8,32,4,27],"hl":[]},{"note":"按个位：21→桶1，15→桶5","vals":[21,15,8,32,4,27],"hl":[0,1]},{"note":"按个位：8→桶8，32→桶2","vals":[21,15,8,32,4,27],"hl":[2,3]},{"note":"按个位：4→桶4，27→桶7","vals":[21,15,8,32,4,27],"hl":[4,5]},{"note":"个位收集：21 32 4 15 27 8","vals":[21,32,4,15,27,8],"hl":[0,1,2,3,4,5]},{"note":"按十位分配：4、8 进桶 0","vals":[21,32,4,15,27,8],"hl":[2,5]},{"note":"十位收集得有序：4 8 15 21 27 32","vals":[4,8,15,21,27,32],"hl":[],"done":[0,1,2,3,4,5]},{"note":"LSD 两趟完成，结果稳定有序","vals":[4,8,15,21,27,32],"hl":[],"done":[0,1,2,3,4,5]}]};</script>
+<script src="../assets/js/anim.js"></script>
+</body>
+</html>

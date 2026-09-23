@@ -1,0 +1,131 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>基数排序代码(C/C++链式实现)</title>
+<link rel="stylesheet" href="../assets/css/site.css">
+<link rel="icon" href="data:,">
+</head>
+<body>
+<header class="top">
+  <a class="brand" href="../index.html">408 数据结构</a>
+  <span class="muted">64 / 67</span>
+</header>
+<main class="wrap lesson">
+  <p class="crumb">排序</p>
+  <h1>基数排序代码(C/C++链式实现)</h1>
+  <p>十个链桶分配收集，LSD 两趟有序</p>
+  <div class="stage-wrap"><canvas id="stage" width="960" height="360"></canvas></div>
+  <p id="note"></p>
+  <div class="controls">
+    <button id="prev" type="button">上一步</button>
+    <button id="play" type="button">播放</button>
+    <button id="next" type="button">下一步</button>
+    <span id="step" class="muted"></span>
+    <span class="muted">方向键也可切换</span>
+  </div>
+  <section class="panel">
+    <h2>要点</h2>
+    <ul><li>每个桶是链表，结点含 data 与 next</li><li>分配时按位挂到对应桶尾，保持稳定</li><li>收集时按桶号 0 到 9 依次接成新链</li><li>先打印个位收集序，再打印十位有序序</li></ul>
+    <p class="muted">时间 O(d(n+r))；空间 O(n+r) 链结点；稳定</p>
+  </section>
+  <section class="panel">
+    <h2>完整 C++ 代码</h2>
+    <p><a href="../c/radix-code.cpp" download>下载 .cpp</a>
+    <button id="copy" type="button">复制</button></p>
+    <pre><code id="code">// 基数排序代码（链式）：10 个桶用链表，LSD
+#include &lt;iostream&gt;
+using namespace std;
+
+struct Node {
+    int data;
+    Node* next;
+    Node(int v) : data(v), next(nullptr) {}
+};
+
+void printList(Node* head) {
+    for (Node* p = head; p; p = p-&gt;next) {
+        if (p != head) cout &lt;&lt; &quot; &quot;;
+        cout &lt;&lt; p-&gt;data;
+    }
+    cout &lt;&lt; &quot;\n&quot;;
+}
+
+void clearList(Node*&amp; head) {
+    while (head) {
+        Node* t = head;
+        head = head-&gt;next;
+        delete t;
+    }
+}
+
+// 按 exp 位分配到 10 个链桶，再按 0..9 收集成新链表
+Node* radixPass(Node* head, int exp) {
+    Node* front[10] = {nullptr};
+    Node* rear[10] = {nullptr};
+
+    while (head) {
+        Node* cur = head;
+        head = head-&gt;next;
+        cur-&gt;next = nullptr;
+        int d = (cur-&gt;data / exp) % 10;
+        if (!front[d]) {
+            front[d] = rear[d] = cur;
+        } else {
+            rear[d]-&gt;next = cur;
+            rear[d] = cur;
+        }
+    }
+
+    Node* newHead = nullptr;
+    Node* newTail = nullptr;
+    for (int d = 0; d &lt; 10; d++) {
+        if (!front[d]) continue;
+        if (!newHead) {
+            newHead = front[d];
+            newTail = rear[d];
+        } else {
+            newTail-&gt;next = front[d];
+            newTail = rear[d];
+        }
+    }
+    return newHead;
+}
+
+int main() {
+    int raw[] = {21, 15, 8, 32, 4, 27};
+    int n = 6;
+    Node* head = nullptr;
+    Node* tail = nullptr;
+    for (int i = 0; i &lt; n; i++) {
+        Node* p = new Node(raw[i]);
+        if (!head) head = tail = p;
+        else {
+            tail-&gt;next = p;
+            tail = p;
+        }
+    }
+
+    cout &lt;&lt; &quot;init: &quot;;
+    printList(head);
+
+    head = radixPass(head, 1);   // 个位
+    cout &lt;&lt; &quot;ones: &quot;;
+    printList(head);
+
+    head = radixPass(head, 10);  // 十位
+    cout &lt;&lt; &quot;tens: &quot;;
+    printList(head);
+
+    clearList(head);
+    return 0;
+}
+</code></pre>
+  </section>
+  <nav class="pager"><a href="radix-idea.html">上一节<br>基数排序</a><a href="expr-eval.html">下一节<br>秒杀系列-前后缀表达式计算</a></nav>
+</main>
+<script>window.LESSON_ANIM={"kind":"bars","frames":[{"note":"链上初值：21 15 8 32 4 27","vals":[21,15,8,32,4,27],"hl":[]},{"note":"个位分配：结点挂入桶 1,5,8,2,4,7","vals":[21,15,8,32,4,27],"hl":[0,1,2,3,4,5]},{"note":"个位收集后：21 32 4 15 27 8","vals":[21,32,4,15,27,8],"hl":[0,1,2,3,4,5]},{"note":"十位分配：再挂入对应链桶","vals":[21,32,4,15,27,8],"hl":[]},{"note":"桶0 收 4、8；桶1 收 15","vals":[4,8,15,21,27,32],"hl":[0,1,2]},{"note":"桶2 收 21、27；桶3 收 32","vals":[4,8,15,21,27,32],"hl":[3,4,5]},{"note":"十位收集完成：4 8 15 21 27 32","vals":[4,8,15,21,27,32],"hl":[],"done":[0,1,2,3,4,5]},{"note":"链式 LSD 有序结果如上","vals":[4,8,15,21,27,32],"hl":[],"done":[0,1,2,3,4,5]}]};</script>
+<script src="../assets/js/anim.js"></script>
+</body>
+</html>

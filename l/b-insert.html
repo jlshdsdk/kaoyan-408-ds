@@ -1,0 +1,200 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>B树(B-树) - 来由, 定义, 插入, 构建</title>
+<link rel="stylesheet" href="../assets/css/site.css">
+<link rel="icon" href="data:,">
+</head>
+<body>
+<header class="top">
+  <a class="brand" href="../index.html">408 数据结构</a>
+  <span class="muted">42 / 67</span>
+</header>
+<main class="wrap lesson">
+  <p class="crumb">查找</p>
+  <h1>B树(B-树) - 来由, 定义, 插入, 构建</h1>
+  <p>B树多路，满则分裂，中位数上提</p>
+  <div class="stage-wrap"><canvas id="stage" width="960" height="360"></canvas></div>
+  <p id="note"></p>
+  <div class="controls">
+    <button id="prev" type="button">上一步</button>
+    <button id="play" type="button">播放</button>
+    <button id="next" type="button">下一步</button>
+    <span id="step" class="muted"></span>
+    <span class="muted">方向键也可切换</span>
+  </div>
+  <section class="panel">
+    <h2>要点</h2>
+    <ul><li>阶 m=3 时每结点最多 2 个关键字</li><li>插入先落到叶子，满了先分裂再继续</li><li>分裂把中间关键字交给父结点</li><li>根满则长出新根，树高加一</li></ul>
+    <p class="muted">查找/插入最好最坏平均 O(log_m n)；一次分裂 O(m)；空间 O(n)</p>
+  </section>
+  <section class="panel">
+    <h2>完整 C++ 代码</h2>
+    <p><a href="../c/b-insert.cpp" download>下载 .cpp</a>
+    <button id="copy" type="button">复制</button></p>
+    <pre><code id="code">// B-tree order m=3 (max 2 keys); insert then split on overflow
+#include &lt;iostream&gt;
+#include &lt;vector&gt;
+using namespace std;
+
+const int M = 3;           // order
+const int MAX_KEY = M - 1; // 2
+const int MIN_KEY = 1;
+
+struct Node {
+    int n;
+    int key[M]; // allow temporary n==M (3)
+    Node* child[M + 1];
+    bool leaf;
+    Node() : n(0), leaf(true) {
+        for (int i = 0; i &lt; M; i++) key[i] = 0;
+        for (int i = 0; i &lt;= M; i++) child[i] = nullptr;
+    }
+};
+
+Node* root = nullptr;
+
+void printLevels(Node* r) {
+    if (!r) {
+        cout &lt;&lt; &quot;(empty)\n&quot;;
+        return;
+    }
+    vector&lt;Node*&gt; q;
+    q.push_back(r);
+    int level = 0;
+    while (!q.empty()) {
+        cout &lt;&lt; &quot;L&quot; &lt;&lt; level &lt;&lt; &quot;:&quot;;
+        vector&lt;Node*&gt; next;
+        for (Node* p : q) {
+            cout &lt;&lt; &quot; [&quot;;
+            for (int i = 0; i &lt; p-&gt;n; i++) {
+                if (i) cout &lt;&lt; &quot; &quot;;
+                cout &lt;&lt; p-&gt;key[i];
+            }
+            cout &lt;&lt; &quot;]&quot;;
+            if (!p-&gt;leaf) {
+                for (int i = 0; i &lt;= p-&gt;n; i++)
+                    if (p-&gt;child[i]) next.push_back(p-&gt;child[i]);
+            }
+        }
+        cout &lt;&lt; &quot;\n&quot;;
+        q = next;
+        level++;
+    }
+}
+
+// y has n==M (3 keys); median key[1] goes up; right sibling returned
+void splitNode(Node* y, int&amp; up, Node*&amp; z) {
+    int mid = 1;
+    up = y-&gt;key[mid];
+    z = new Node();
+    z-&gt;leaf = y-&gt;leaf;
+    z-&gt;n = y-&gt;n - mid - 1; // 1
+    for (int j = 0; j &lt; z-&gt;n; j++) z-&gt;key[j] = y-&gt;key[mid + 1 + j];
+    if (!y-&gt;leaf) {
+        for (int j = 0; j &lt;= z-&gt;n; j++) z-&gt;child[j] = y-&gt;child[mid + 1 + j];
+    }
+    y-&gt;n = mid; // 1
+}
+
+void insertInto(Node* x, int k) {
+    if (x-&gt;leaf) {
+        int i = x-&gt;n - 1;
+        while (i &gt;= 0 &amp;&amp; k &lt; x-&gt;key[i]) {
+            x-&gt;key[i + 1] = x-&gt;key[i];
+            i--;
+        }
+        x-&gt;key[i + 1] = k;
+        x-&gt;n++;
+        return;
+    }
+    int i = x-&gt;n - 1;
+    while (i &gt;= 0 &amp;&amp; k &lt; x-&gt;key[i]) i--;
+    i++;
+    insertInto(x-&gt;child[i], k);
+    if (x-&gt;child[i]-&gt;n == M) {
+        int up;
+        Node* z;
+        splitNode(x-&gt;child[i], up, z);
+        for (int j = x-&gt;n; j &gt; i; j--) {
+            x-&gt;key[j] = x-&gt;key[j - 1];
+            x-&gt;child[j + 1] = x-&gt;child[j];
+        }
+        x-&gt;key[i] = up;
+        x-&gt;child[i + 1] = z;
+        x-&gt;n++;
+    }
+}
+
+void insertKey(int k) {
+    if (!root) {
+        root = new Node();
+        root-&gt;key[0] = k;
+        root-&gt;n = 1;
+        return;
+    }
+    insertInto(root, k);
+    if (root-&gt;n == M) {
+        Node* s = new Node();
+        s-&gt;leaf = false;
+        int up;
+        Node* z;
+        splitNode(root, up, z);
+        s-&gt;key[0] = up;
+        s-&gt;child[0] = root;
+        s-&gt;child[1] = z;
+        s-&gt;n = 1;
+        root = s;
+    }
+}
+
+int countKeys(Node* p) {
+    if (!p) return 0;
+    int s = p-&gt;n;
+    if (!p-&gt;leaf)
+        for (int i = 0; i &lt;= p-&gt;n; i++) s += countKeys(p-&gt;child[i]);
+    return s;
+}
+
+bool checkNode(Node* p, bool isRoot) {
+    if (!p) return true;
+    if (p-&gt;n &lt; 0 || p-&gt;n &gt; MAX_KEY) return false;
+    if (!isRoot &amp;&amp; p-&gt;n &lt; MIN_KEY) return false;
+    for (int i = 1; i &lt; p-&gt;n; i++)
+        if (p-&gt;key[i - 1] &gt;= p-&gt;key[i]) return false;
+    if (!p-&gt;leaf)
+        for (int i = 0; i &lt;= p-&gt;n; i++)
+            if (!checkNode(p-&gt;child[i], false)) return false;
+    return true;
+}
+
+void freeTree(Node* p) {
+    if (!p) return;
+    if (!p-&gt;leaf)
+        for (int i = 0; i &lt;= p-&gt;n; i++) freeTree(p-&gt;child[i]);
+    delete p;
+}
+
+int main() {
+    int a[] = {10, 20, 5, 6, 12, 30};
+    for (int k : a) {
+        insertKey(k);
+        cout &lt;&lt; &quot;after &quot; &lt;&lt; k &lt;&lt; &quot;:\n&quot;;
+        printLevels(root);
+    }
+    bool ok = checkNode(root, true) &amp;&amp; countKeys(root) == 6;
+    cout &lt;&lt; (ok ? &quot;B-insert OK keys=6\n&quot; : &quot;B-insert BAD\n&quot;);
+    freeTree(root);
+    root = nullptr;
+    return 0;
+}
+</code></pre>
+  </section>
+  <nav class="pager"><a href="rbt-delete.html">上一节<br>红黑树 - 删除</a><a href="b-delete.html">下一节<br>B树(B-树) - 删除</a></nav>
+</main>
+<script>window.LESSON_ANIM={"kind":"matrix","frames":[{"note":"插入 10：根结点 [10]","rows":[["10","",""]],"hl":[[0,0]]},{"note":"插入 20：根变成 [10 20]","rows":[["10","20",""]],"hl":[[0,1]]},{"note":"插 5：临时满 3 键，准备分裂","rows":[["5","10","20"]],"hl":[[0,0],[0,1],[0,2]]},{"note":"中位 10 上提，左右 [5] 与 [20]","rows":[["10","",""],["5","|","20"]],"hl":[[0,0]]},{"note":"插入 6：进入左叶，成 [5 6]","rows":[["10","",""],["5 6","|","20"]],"hl":[[1,0]]},{"note":"插入 12：进入右叶，成 [12 20]","rows":[["10","",""],["5 6","|","12 20"]],"hl":[[1,2]]},{"note":"插 30：右叶再满，中位 20 上提","rows":[["10","20",""],["5 6","12","30"]],"hl":[[0,1],[1,1],[1,2]]},{"note":"完成：根 [10 20]，三叶 [5 6][12][30]","rows":[["10","20",""],["5 6","12","30"]],"hl":[]},{"note":"每层关键字与代码打印的 L0/L1 一致","rows":[["L0: [10 20]","",""],["L1: [5 6]","[12]","[30]"]],"hl":[[0,0]]}]};</script>
+<script src="../assets/js/anim.js"></script>
+</body>
+</html>

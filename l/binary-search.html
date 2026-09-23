@@ -1,0 +1,82 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>折半查找(二分查找)</title>
+<link rel="stylesheet" href="../assets/css/site.css">
+<link rel="icon" href="data:,">
+</head>
+<body>
+<header class="top">
+  <a class="brand" href="../index.html">408 数据结构</a>
+  <span class="muted">33 / 67</span>
+</header>
+<main class="wrap lesson">
+  <p class="crumb">查找</p>
+  <h1>折半查找(二分查找)</h1>
+  <p>有序表取中点，一半一半缩小区间</p>
+  <div class="stage-wrap"><canvas id="stage" width="960" height="360"></canvas></div>
+  <p id="note"></p>
+  <div class="controls">
+    <button id="prev" type="button">上一步</button>
+    <button id="play" type="button">播放</button>
+    <button id="next" type="button">下一步</button>
+    <span id="step" class="muted"></span>
+    <span class="muted">方向键也可切换</span>
+  </div>
+  <section class="panel">
+    <h2>要点</h2>
+    <ul><li>前提是升序（或降序）静态表</li><li>每轮看 mid，决定去左半还是右半</li><li>打印 low/mid/high 方便对照过程</li><li>失败时 low&gt;high，区间被夹空</li></ul>
+    <p class="muted">时间最好O(1)、最坏/平均O(log n)；空间迭代O(1)、递归O(log n)</p>
+  </section>
+  <section class="panel">
+    <h2>完整 C++ 代码</h2>
+    <p><a href="../c/binary-search.cpp" download>下载 .cpp</a>
+    <button id="copy" type="button">复制</button></p>
+    <pre><code id="code">// 折半查找：有序表上比较，打印 low mid high
+#include &lt;iostream&gt;
+using namespace std;
+
+// 返回下标；找不到返回 -1。过程打印 low/mid/high
+int binarySearch(const int a[], int n, int key) {
+    if (n &lt;= 0) return -1;
+    int low = 0, high = n - 1;
+    while (low &lt;= high) {
+        int mid = low + (high - low) / 2;
+        cout &lt;&lt; &quot;low=&quot; &lt;&lt; low &lt;&lt; &quot; mid=&quot; &lt;&lt; mid &lt;&lt; &quot; high=&quot; &lt;&lt; high
+             &lt;&lt; &quot; a[mid]=&quot; &lt;&lt; a[mid] &lt;&lt; &quot;\n&quot;;
+        if (a[mid] == key) return mid;
+        if (a[mid] &lt; key) low = mid + 1;
+        else high = mid - 1;
+    }
+    return -1;
+}
+
+int main() {
+    int a[] = {2, 5, 8, 12, 16, 23, 38};
+    int n = 7;
+
+    cout &lt;&lt; &quot;search 16\n&quot;;
+    int p = binarySearch(a, n, 16);
+    if (p &gt;= 0) cout &lt;&lt; &quot;found index=&quot; &lt;&lt; p &lt;&lt; &quot;\n&quot;;
+    else cout &lt;&lt; &quot;error\n&quot;;
+
+    cout &lt;&lt; &quot;search 7\n&quot;;
+    p = binarySearch(a, n, 7);
+    if (p &gt;= 0) cout &lt;&lt; &quot;found index=&quot; &lt;&lt; p &lt;&lt; &quot;\n&quot;;
+    else cout &lt;&lt; &quot;not found\n&quot;;
+
+    // 空表
+    p = binarySearch(a, 0, 1);
+    if (p &lt; 0) cout &lt;&lt; &quot;empty=-1\n&quot;;
+    return 0;
+}
+</code></pre>
+  </section>
+  <nav class="pager"><a href="seq-search.html">上一节<br>顺序查找和平均查找长度ASL</a><a href="bs-tree-asl.html">下一节<br>折半查找的判定树和平均查找长度(ASL)</a></nav>
+</main>
+<script>window.LESSON_ANIM={"kind":"array","frames":[{"note":"有序表 2 5 8 12 16 23 38，先找 16","cells":["2","5","8","12","16","23","38"],"hl":[]},{"note":"low=0 high=6 mid=3，a[mid]=12 \u003c 16，去右","cells":["2","5","8","12","16","23","38"],"hl":[3]},{"note":"low=4 high=6 mid=5，a[mid]=23 > 16，去左","cells":["2","5","8","12","16","23","38"],"hl":[5]},{"note":"low=4 high=4 mid=4，a[mid]=16，命中","cells":["2","5","8","12","16","23","38"],"hl":[4],"done":[4]},{"note":"再找 7：low=0 high=6 mid=3，12>7，去左","cells":["2","5","8","12","16","23","38"],"hl":[3]},{"note":"low=0 high=2 mid=1，a[mid]=5 \u003c 7，去右","cells":["2","5","8","12","16","23","38"],"hl":[1]},{"note":"low=2 high=2 mid=2，a[mid]=8 > 7，去左","cells":["2","5","8","12","16","23","38"],"hl":[2]},{"note":"low=2 high=1，区间空，失败","cells":["2","5","8","12","16","23","38"],"hl":[]},{"note":"成功路径：12→23→16，三步找到","cells":["2","5","8","12","16","23","38"],"hl":[3,5,4],"done":[4]},{"note":"失败路径：12→5→8 后 low>high","cells":["2","5","8","12","16","23","38"],"hl":[3,1,2]}]};</script>
+<script src="../assets/js/anim.js"></script>
+</body>
+</html>

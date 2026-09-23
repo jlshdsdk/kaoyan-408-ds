@@ -1,0 +1,171 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>二叉树-前序中序推后序, 后序中序推前序</title>
+<link rel="stylesheet" href="../assets/css/site.css">
+<link rel="icon" href="data:,">
+</head>
+<body>
+<header class="top">
+  <a class="brand" href="../index.html">408 数据结构</a>
+  <span class="muted">67 / 67</span>
+</header>
+<main class="wrap lesson">
+  <p class="crumb">常见题型</p>
+  <h1>二叉树-前序中序推后序, 后序中序推前序</h1>
+  <p>有中序再配前序或后序，就能唯一还原树</p>
+  <div class="stage-wrap"><canvas id="stage" width="960" height="360"></canvas></div>
+  <p id="note"></p>
+  <div class="controls">
+    <button id="prev" type="button">上一步</button>
+    <button id="play" type="button">播放</button>
+    <button id="next" type="button">下一步</button>
+    <span id="step" class="muted"></span>
+    <span class="muted">方向键也可切换</span>
+  </div>
+  <section class="panel">
+    <h2>要点</h2>
+    <ul><li>前序第一个（后序最后一个）是当前子树的根</li><li>根在中序里切开，左边是左子树，右边是右子树</li><li>递归处理左右段，整棵树就定下来了</li><li>后序+中序建树时先递归右子树再左子树</li></ul>
+    <p class="muted">时间 O(n^2) 朴素找根位，可用哈希到 O(n)；空间 O(n) 递归栈与树</p>
+  </section>
+  <section class="panel">
+    <h2>完整 C++ 代码</h2>
+    <p><a href="../c/order-infer.cpp" download>下载 .cpp</a>
+    <button id="copy" type="button">复制</button></p>
+    <pre><code id="code">// 前序+中序推后序；后序+中序推前序
+#include &lt;iostream&gt;
+#include &lt;string&gt;
+#include &lt;vector&gt;
+using namespace std;
+
+struct Node {
+    char v;
+    Node* l;
+    Node* r;
+    Node(char c) : v(c), l(nullptr), r(nullptr) {}
+};
+
+void clear(Node* p) {
+    if (!p) return;
+    clear(p-&gt;l);
+    clear(p-&gt;r);
+    delete p;
+}
+
+int indexOf(const string&amp; s, char c, int L, int R) {
+    for (int i = L; i &lt;= R; i++) if (s[i] == c) return i;
+    return -1;
+}
+
+// 前序 + 中序 -&gt; 建树
+Node* buildPreIn(const string&amp; pre, const string&amp; in, int&amp; pi, int L, int R) {
+    if (L &gt; R) return nullptr;
+    if (pi &gt;= (int)pre.size()) {
+        cout &lt;&lt; &quot;error\n&quot;;
+        return nullptr;
+    }
+    char root = pre[pi++];
+    int k = indexOf(in, root, L, R);
+    if (k &lt; 0) {
+        cout &lt;&lt; &quot;error\n&quot;;
+        return nullptr;
+    }
+    Node* p = new Node(root);
+    p-&gt;l = buildPreIn(pre, in, pi, L, k - 1);
+    p-&gt;r = buildPreIn(pre, in, pi, k + 1, R);
+    return p;
+}
+
+// 后序 + 中序 -&gt; 建树（从后序末尾取根，先建右子树）
+Node* buildPostIn(const string&amp; post, const string&amp; in, int&amp; pi, int L, int R) {
+    if (L &gt; R) return nullptr;
+    if (pi &lt; 0) {
+        cout &lt;&lt; &quot;error\n&quot;;
+        return nullptr;
+    }
+    char root = post[pi--];
+    int k = indexOf(in, root, L, R);
+    if (k &lt; 0) {
+        cout &lt;&lt; &quot;error\n&quot;;
+        return nullptr;
+    }
+    Node* p = new Node(root);
+    p-&gt;r = buildPostIn(post, in, pi, k + 1, R);
+    p-&gt;l = buildPostIn(post, in, pi, L, k - 1);
+    return p;
+}
+
+void walkPre(Node* p, string&amp; out) {
+    if (!p) return;
+    out.push_back(p-&gt;v);
+    walkPre(p-&gt;l, out);
+    walkPre(p-&gt;r, out);
+}
+
+void walkPost(Node* p, string&amp; out) {
+    if (!p) return;
+    walkPost(p-&gt;l, out);
+    walkPost(p-&gt;r, out);
+    out.push_back(p-&gt;v);
+}
+
+string preInToPost(const string&amp; pre, const string&amp; in) {
+    if (pre.size() != in.size() || pre.empty()) {
+        cout &lt;&lt; &quot;error\n&quot;;
+        return &quot;&quot;;
+    }
+    int pi = 0;
+    Node* root = buildPreIn(pre, in, pi, 0, (int)in.size() - 1);
+    if (!root || pi != (int)pre.size()) {
+        clear(root);
+        cout &lt;&lt; &quot;error\n&quot;;
+        return &quot;&quot;;
+    }
+    string post;
+    walkPost(root, post);
+    clear(root);
+    return post;
+}
+
+string postInToPre(const string&amp; post, const string&amp; in) {
+    if (post.size() != in.size() || post.empty()) {
+        cout &lt;&lt; &quot;error\n&quot;;
+        return &quot;&quot;;
+    }
+    int pi = (int)post.size() - 1;
+    Node* root = buildPostIn(post, in, pi, 0, (int)in.size() - 1);
+    if (!root || pi != -1) {
+        clear(root);
+        cout &lt;&lt; &quot;error\n&quot;;
+        return &quot;&quot;;
+    }
+    string pre;
+    walkPre(root, pre);
+    clear(root);
+    return pre;
+}
+
+int main() {
+    string pre = &quot;ABDEGCFH&quot;;
+    string in = &quot;DBGEAFHC&quot;;
+    string post = preInToPost(pre, in);
+    cout &lt;&lt; &quot;postorder: &quot; &lt;&lt; post &lt;&lt; &quot;\n&quot;;
+
+    string pre2 = postInToPre(post, in);
+    cout &lt;&lt; &quot;preorder: &quot; &lt;&lt; pre2 &lt;&lt; &quot;\n&quot;;
+
+    // mismatch
+    string bad = postInToPre(&quot;ABC&quot;, &quot;AB&quot;);
+    (void)bad;
+    return 0;
+}
+</code></pre>
+  </section>
+  <nav class="pager"><a href="expr-convert.html">上一节<br>秒杀系列-中缀表达式转前后缀表达式</a><span></span></nav>
+</main>
+<script>window.LESSON_ANIM={"kind":"graph","frames":[{"note":"前序 ABDEGCFH，中序 DBGEAFHC，先定全树根 A","nodes":[{"id":"A","v":"A","x":0.5,"y":0.12},{"id":"B","v":"B","x":0.25,"y":0.35},{"id":"C","v":"C","x":0.75,"y":0.35},{"id":"D","v":"D","x":0.12,"y":0.58},{"id":"E","v":"E","x":0.35,"y":0.58},{"id":"F","v":"F","x":0.68,"y":0.58},{"id":"G","v":"G","x":0.28,"y":0.84},{"id":"H","v":"H","x":0.82,"y":0.84}],"edges":[{"u":"A","v":"B","w":"","hl":false},{"u":"A","v":"C","w":"","hl":false},{"u":"B","v":"D","w":"","hl":false},{"u":"B","v":"E","w":"","hl":false},{"u":"E","v":"G","w":"","hl":false},{"u":"C","v":"F","w":"","hl":false},{"u":"F","v":"H","w":"","hl":false}],"hl":["A"]},{"note":"中序里 A 左为 DBGE，右为 FHC","nodes":[{"id":"A","v":"A","x":0.5,"y":0.12},{"id":"B","v":"B","x":0.25,"y":0.35},{"id":"C","v":"C","x":0.75,"y":0.35},{"id":"D","v":"D","x":0.12,"y":0.58},{"id":"E","v":"E","x":0.35,"y":0.58},{"id":"F","v":"F","x":0.68,"y":0.58},{"id":"G","v":"G","x":0.28,"y":0.84},{"id":"H","v":"H","x":0.82,"y":0.84}],"edges":[{"u":"A","v":"B","w":"","hl":true},{"u":"A","v":"C","w":"","hl":true},{"u":"B","v":"D","w":"","hl":false},{"u":"B","v":"E","w":"","hl":false},{"u":"E","v":"G","w":"","hl":false},{"u":"C","v":"F","w":"","hl":false},{"u":"F","v":"H","w":"","hl":false}],"hl":["A","B","C"]},{"note":"左段前序首字母 B 是左子树根","nodes":[{"id":"A","v":"A","x":0.5,"y":0.12},{"id":"B","v":"B","x":0.25,"y":0.35},{"id":"C","v":"C","x":0.75,"y":0.35},{"id":"D","v":"D","x":0.12,"y":0.58},{"id":"E","v":"E","x":0.35,"y":0.58},{"id":"F","v":"F","x":0.68,"y":0.58},{"id":"G","v":"G","x":0.28,"y":0.84},{"id":"H","v":"H","x":0.82,"y":0.84}],"edges":[{"u":"A","v":"B","w":"","hl":true},{"u":"A","v":"C","w":"","hl":false},{"u":"B","v":"D","w":"","hl":false},{"u":"B","v":"E","w":"","hl":false},{"u":"E","v":"G","w":"","hl":false},{"u":"C","v":"F","w":"","hl":false},{"u":"F","v":"H","w":"","hl":false}],"hl":["B"]},{"note":"B 的中序左是 D，右是 GE；E 的左是 G","nodes":[{"id":"A","v":"A","x":0.5,"y":0.12},{"id":"B","v":"B","x":0.25,"y":0.35},{"id":"C","v":"C","x":0.75,"y":0.35},{"id":"D","v":"D","x":0.12,"y":0.58},{"id":"E","v":"E","x":0.35,"y":0.58},{"id":"F","v":"F","x":0.68,"y":0.58},{"id":"G","v":"G","x":0.28,"y":0.84},{"id":"H","v":"H","x":0.82,"y":0.84}],"edges":[{"u":"A","v":"B","w":"","hl":false},{"u":"A","v":"C","w":"","hl":false},{"u":"B","v":"D","w":"","hl":true},{"u":"B","v":"E","w":"","hl":true},{"u":"E","v":"G","w":"","hl":true},{"u":"C","v":"F","w":"","hl":false},{"u":"F","v":"H","w":"","hl":false}],"hl":["D","E","G"]},{"note":"右段前序首字母 C 是右子树根，其左为 F，F 右为 H","nodes":[{"id":"A","v":"A","x":0.5,"y":0.12},{"id":"B","v":"B","x":0.25,"y":0.35},{"id":"C","v":"C","x":0.75,"y":0.35},{"id":"D","v":"D","x":0.12,"y":0.58},{"id":"E","v":"E","x":0.35,"y":0.58},{"id":"F","v":"F","x":0.68,"y":0.58},{"id":"G","v":"G","x":0.28,"y":0.84},{"id":"H","v":"H","x":0.82,"y":0.84}],"edges":[{"u":"A","v":"B","w":"","hl":false},{"u":"A","v":"C","w":"","hl":true},{"u":"B","v":"D","w":"","hl":false},{"u":"B","v":"E","w":"","hl":false},{"u":"E","v":"G","w":"","hl":false},{"u":"C","v":"F","w":"","hl":true},{"u":"F","v":"H","w":"","hl":true}],"hl":["C","F","H"]},{"note":"整树还原完，后序走一遍：DGEBHFCA","nodes":[{"id":"A","v":"A","x":0.5,"y":0.12},{"id":"B","v":"B","x":0.25,"y":0.35},{"id":"C","v":"C","x":0.75,"y":0.35},{"id":"D","v":"D","x":0.12,"y":0.58},{"id":"E","v":"E","x":0.35,"y":0.58},{"id":"F","v":"F","x":0.68,"y":0.58},{"id":"G","v":"G","x":0.28,"y":0.84},{"id":"H","v":"H","x":0.82,"y":0.84}],"edges":[{"u":"A","v":"B","w":"","hl":false},{"u":"A","v":"C","w":"","hl":false},{"u":"B","v":"D","w":"","hl":false},{"u":"B","v":"E","w":"","hl":false},{"u":"E","v":"G","w":"","hl":false},{"u":"C","v":"F","w":"","hl":false},{"u":"F","v":"H","w":"","hl":false}],"hl":["D","G","E","B","H","F","C","A"]},{"note":"反过来：后序末字母 A 仍是根","nodes":[{"id":"A","v":"A","x":0.5,"y":0.12},{"id":"B","v":"B","x":0.25,"y":0.35},{"id":"C","v":"C","x":0.75,"y":0.35},{"id":"D","v":"D","x":0.12,"y":0.58},{"id":"E","v":"E","x":0.35,"y":0.58},{"id":"F","v":"F","x":0.68,"y":0.58},{"id":"G","v":"G","x":0.28,"y":0.84},{"id":"H","v":"H","x":0.82,"y":0.84}],"edges":[{"u":"A","v":"B","w":"","hl":false},{"u":"A","v":"C","w":"","hl":false},{"u":"B","v":"D","w":"","hl":false},{"u":"B","v":"E","w":"","hl":false},{"u":"E","v":"G","w":"","hl":false},{"u":"C","v":"F","w":"","hl":false},{"u":"F","v":"H","w":"","hl":false}],"hl":["A"]},{"note":"后序右段末是 C，故右子树根为 C","nodes":[{"id":"A","v":"A","x":0.5,"y":0.12},{"id":"B","v":"B","x":0.25,"y":0.35},{"id":"C","v":"C","x":0.75,"y":0.35},{"id":"D","v":"D","x":0.12,"y":0.58},{"id":"E","v":"E","x":0.35,"y":0.58},{"id":"F","v":"F","x":0.68,"y":0.58},{"id":"G","v":"G","x":0.28,"y":0.84},{"id":"H","v":"H","x":0.82,"y":0.84}],"edges":[{"u":"A","v":"B","w":"","hl":false},{"u":"A","v":"C","w":"","hl":true},{"u":"B","v":"D","w":"","hl":false},{"u":"B","v":"E","w":"","hl":false},{"u":"E","v":"G","w":"","hl":false},{"u":"C","v":"F","w":"","hl":false},{"u":"F","v":"H","w":"","hl":false}],"hl":["C"]},{"note":"左段末是 B，故左子树根为 B","nodes":[{"id":"A","v":"A","x":0.5,"y":0.12},{"id":"B","v":"B","x":0.25,"y":0.35},{"id":"C","v":"C","x":0.75,"y":0.35},{"id":"D","v":"D","x":0.12,"y":0.58},{"id":"E","v":"E","x":0.35,"y":0.58},{"id":"F","v":"F","x":0.68,"y":0.58},{"id":"G","v":"G","x":0.28,"y":0.84},{"id":"H","v":"H","x":0.82,"y":0.84}],"edges":[{"u":"A","v":"B","w":"","hl":true},{"u":"A","v":"C","w":"","hl":false},{"u":"B","v":"D","w":"","hl":false},{"u":"B","v":"E","w":"","hl":false},{"u":"E","v":"G","w":"","hl":false},{"u":"C","v":"F","w":"","hl":false},{"u":"F","v":"H","w":"","hl":false}],"hl":["B"]},{"note":"还原得前序 ABDEGCFH，与出发数据一致","nodes":[{"id":"A","v":"A","x":0.5,"y":0.12},{"id":"B","v":"B","x":0.25,"y":0.35},{"id":"C","v":"C","x":0.75,"y":0.35},{"id":"D","v":"D","x":0.12,"y":0.58},{"id":"E","v":"E","x":0.35,"y":0.58},{"id":"F","v":"F","x":0.68,"y":0.58},{"id":"G","v":"G","x":0.28,"y":0.84},{"id":"H","v":"H","x":0.82,"y":0.84}],"edges":[{"u":"A","v":"B","w":"","hl":false},{"u":"A","v":"C","w":"","hl":false},{"u":"B","v":"D","w":"","hl":false},{"u":"B","v":"E","w":"","hl":false},{"u":"E","v":"G","w":"","hl":false},{"u":"C","v":"F","w":"","hl":false},{"u":"F","v":"H","w":"","hl":false}],"hl":["A","B","D","E","G","C","F","H"]}]};</script>
+<script src="../assets/js/anim.js"></script>
+</body>
+</html>

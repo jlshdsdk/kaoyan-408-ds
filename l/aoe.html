@@ -1,0 +1,143 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>AOE网和关键路径</title>
+<link rel="stylesheet" href="../assets/css/site.css">
+<link rel="icon" href="data:,">
+</head>
+<body>
+<header class="top">
+  <a class="brand" href="../index.html">408 数据结构</a>
+  <span class="muted">31 / 67</span>
+</header>
+<main class="wrap lesson">
+  <p class="crumb">图</p>
+  <h1>AOE网和关键路径</h1>
+  <p>活动在边上，求 ve/vl 与关键路径</p>
+  <div class="stage-wrap"><canvas id="stage" width="960" height="360"></canvas></div>
+  <p id="note"></p>
+  <div class="controls">
+    <button id="prev" type="button">上一步</button>
+    <button id="play" type="button">播放</button>
+    <button id="next" type="button">下一步</button>
+    <span id="step" class="muted"></span>
+    <span class="muted">方向键也可切换</span>
+  </div>
+  <section class="panel">
+    <h2>要点</h2>
+    <ul><li>事件最早时间 ve 按拓扑正向取 max</li><li>最迟时间 vl 从汇点反向取 min</li><li>活动最早=ve(u)，最迟=vl(v)-权</li><li>关键边：最早=最迟；本例长 12，边 AB BD DF</li></ul>
+    <p class="muted">时间 O(V+E)；空间 O(V+E)；需先拓扑</p>
+  </section>
+  <section class="panel">
+    <h2>完整 C++ 代码</h2>
+    <p><a href="../c/aoe.cpp" download>下载 .cpp</a>
+    <button id="copy" type="button">复制</button></p>
+    <pre><code id="code">// AOE 网：事件最早/最迟时间与关键路径
+#include &lt;iostream&gt;
+#include &lt;vector&gt;
+#include &lt;algorithm&gt;
+using namespace std;
+
+const int N = 6;  // A..F
+const int INF = 1e9;
+
+struct Act {
+    int u, v, w;
+};
+
+char name(int i) { return char(&#x27;A&#x27; + i); }
+
+int main() {
+    // activities on edges
+    Act acts[] = {
+        {0, 1, 3}, {0, 2, 2}, {1, 3, 4}, {2, 3, 1},
+        {2, 4, 6}, {3, 4, 2}, {3, 5, 5}, {4, 5, 1}
+    };
+    const int M = 8;
+
+    vector&lt;int&gt; adj[N];
+    int indeg[N] = {0};
+    for (int i = 0; i &lt; M; i++) {
+        adj[acts[i].u].push_back(i);
+        indeg[acts[i].v]++;
+    }
+
+    // topological order from source A=0
+    int order[N];
+    int oc = 0;
+    int deg[N];
+    for (int i = 0; i &lt; N; i++) deg[i] = indeg[i];
+    int q[N], qh = 0, qt = 0;
+    for (int i = 0; i &lt; N; i++) {
+        if (deg[i] == 0) q[qt++] = i;
+    }
+    while (qh &lt; qt) {
+        int u = q[qh++];
+        order[oc++] = u;
+        for (size_t k = 0; k &lt; adj[u].size(); k++) {
+            int ei = adj[u][k];
+            int v = acts[ei].v;
+            if (--deg[v] == 0) q[qt++] = v;
+        }
+    }
+    if (oc != N) {
+        cout &lt;&lt; &quot;error\n&quot;;
+        return 0;
+    }
+
+    int ve[N], vl[N];
+    for (int i = 0; i &lt; N; i++) {
+        ve[i] = 0;
+        vl[i] = INF;
+    }
+    // earliest event time
+    for (int t = 0; t &lt; N; t++) {
+        int u = order[t];
+        for (size_t k = 0; k &lt; adj[u].size(); k++) {
+            int ei = adj[u][k];
+            int v = acts[ei].v;
+            int w = acts[ei].w;
+            ve[v] = max(ve[v], ve[u] + w);
+        }
+    }
+    vl[N - 1] = ve[N - 1];  // sink F
+    for (int t = N - 1; t &gt;= 0; t--) {
+        int u = order[t];
+        for (size_t k = 0; k &lt; adj[u].size(); k++) {
+            int ei = adj[u][k];
+            int v = acts[ei].v;
+            int w = acts[ei].w;
+            vl[u] = min(vl[u], vl[v] - w);
+        }
+        if (vl[u] &gt;= INF) vl[u] = ve[u];
+    }
+
+    cout &lt;&lt; &quot;ve:&quot;;
+    for (int i = 0; i &lt; N; i++) cout &lt;&lt; &quot; &quot; &lt;&lt; name(i) &lt;&lt; &quot;=&quot; &lt;&lt; ve[i];
+    cout &lt;&lt; &quot;\nvl:&quot;;
+    for (int i = 0; i &lt; N; i++) cout &lt;&lt; &quot; &quot; &lt;&lt; name(i) &lt;&lt; &quot;=&quot; &lt;&lt; vl[i];
+    cout &lt;&lt; &quot;\n&quot;;
+
+    cout &lt;&lt; &quot;critical edges:&quot;;
+    int crit_len = ve[N - 1];
+    for (int i = 0; i &lt; M; i++) {
+        int u = acts[i].u, v = acts[i].v, w = acts[i].w;
+        int e = ve[u];
+        int l = vl[v] - w;
+        if (e == l) {
+            cout &lt;&lt; &quot; &quot; &lt;&lt; name(u) &lt;&lt; name(v) &lt;&lt; &quot;(&quot; &lt;&lt; w &lt;&lt; &quot;)&quot;;
+        }
+    }
+    cout &lt;&lt; &quot;\ncritical path length=&quot; &lt;&lt; crit_len &lt;&lt; &quot;\n&quot;;
+    return 0;
+}
+</code></pre>
+  </section>
+  <nav class="pager"><a href="topo-code.html">上一节<br>拓扑排序代码(C/C++实现)</a><a href="seq-search.html">下一节<br>顺序查找和平均查找长度ASL</a></nav>
+</main>
+<script>window.LESSON_ANIM={"kind":"graph","frames":[{"note":"AOE：边是活动，源 A 汇 F","nodes":[{"id":"A","v":"A","x":0.08,"y":0.4},{"id":"B","v":"B","x":0.28,"y":0.18},{"id":"C","v":"C","x":0.28,"y":0.65},{"id":"D","v":"D","x":0.52,"y":0.32},{"id":"E","v":"E","x":0.52,"y":0.7},{"id":"F","v":"F","x":0.82,"y":0.5}],"edges":[{"u":"A","v":"B","w":"3"},{"u":"A","v":"C","w":"2"},{"u":"B","v":"D","w":"4"},{"u":"C","v":"D","w":"1"},{"u":"C","v":"E","w":"6"},{"u":"D","v":"E","w":"2"},{"u":"D","v":"F","w":"5"},{"u":"E","v":"F","w":"1"}],"hl":["A","F"]},{"note":"ve(A)=0，推 ve(B)=3 ve(C)=2","nodes":[{"id":"A","v":"0","x":0.08,"y":0.4},{"id":"B","v":"3","x":0.28,"y":0.18},{"id":"C","v":"2","x":0.28,"y":0.65},{"id":"D","v":"?","x":0.52,"y":0.32},{"id":"E","v":"?","x":0.52,"y":0.7},{"id":"F","v":"?","x":0.82,"y":0.5}],"edges":[{"u":"A","v":"B","w":"3","hl":true},{"u":"A","v":"C","w":"2","hl":true},{"u":"B","v":"D","w":"4"},{"u":"C","v":"D","w":"1"},{"u":"C","v":"E","w":"6"},{"u":"D","v":"E","w":"2"},{"u":"D","v":"F","w":"5"},{"u":"E","v":"F","w":"1"}],"hl":["A","B","C"]},{"note":"ve(D)=max(3+4,2+1)=7","nodes":[{"id":"A","v":"0","x":0.08,"y":0.4},{"id":"B","v":"3","x":0.28,"y":0.18},{"id":"C","v":"2","x":0.28,"y":0.65},{"id":"D","v":"7","x":0.52,"y":0.32},{"id":"E","v":"?","x":0.52,"y":0.7},{"id":"F","v":"?","x":0.82,"y":0.5}],"edges":[{"u":"B","v":"D","w":"4","hl":true},{"u":"C","v":"D","w":"1","hl":true},{"u":"A","v":"B","w":"3"},{"u":"A","v":"C","w":"2"},{"u":"C","v":"E","w":"6"},{"u":"D","v":"E","w":"2"},{"u":"D","v":"F","w":"5"},{"u":"E","v":"F","w":"1"}],"hl":["D"]},{"note":"ve(E)=max(2+6,7+2)=9，ve(F)=12","nodes":[{"id":"A","v":"0","x":0.08,"y":0.4},{"id":"B","v":"3","x":0.28,"y":0.18},{"id":"C","v":"2","x":0.28,"y":0.65},{"id":"D","v":"7","x":0.52,"y":0.32},{"id":"E","v":"9","x":0.52,"y":0.7},{"id":"F","v":"12","x":0.82,"y":0.5}],"edges":[{"u":"C","v":"E","w":"6","hl":true},{"u":"D","v":"E","w":"2","hl":true},{"u":"D","v":"F","w":"5","hl":true},{"u":"E","v":"F","w":"1","hl":true},{"u":"A","v":"B","w":"3"},{"u":"A","v":"C","w":"2"},{"u":"B","v":"D","w":"4"},{"u":"C","v":"D","w":"1"}],"hl":["E","F"]},{"note":"反向：vl(F)=12，vl(D)=7，vl(B)=3","nodes":[{"id":"A","v":"0/0","x":0.08,"y":0.4},{"id":"B","v":"3/3","x":0.28,"y":0.18},{"id":"C","v":"2/5","x":0.28,"y":0.65},{"id":"D","v":"7/7","x":0.52,"y":0.32},{"id":"E","v":"9/11","x":0.52,"y":0.7},{"id":"F","v":"12/12","x":0.82,"y":0.5}],"edges":[{"u":"A","v":"B","w":"3"},{"u":"A","v":"C","w":"2"},{"u":"B","v":"D","w":"4"},{"u":"C","v":"D","w":"1"},{"u":"C","v":"E","w":"6"},{"u":"D","v":"E","w":"2"},{"u":"D","v":"F","w":"5"},{"u":"E","v":"F","w":"1"}],"hl":["A","B","D","F"]},{"note":"关键边：最早=最迟，先标 AB","nodes":[{"id":"A","v":"0/0","x":0.08,"y":0.4},{"id":"B","v":"3/3","x":0.28,"y":0.18},{"id":"C","v":"2/5","x":0.28,"y":0.65},{"id":"D","v":"7/7","x":0.52,"y":0.32},{"id":"E","v":"9/11","x":0.52,"y":0.7},{"id":"F","v":"12/12","x":0.82,"y":0.5}],"edges":[{"u":"A","v":"B","w":"3","hl":true},{"u":"A","v":"C","w":"2"},{"u":"B","v":"D","w":"4"},{"u":"C","v":"D","w":"1"},{"u":"C","v":"E","w":"6"},{"u":"D","v":"E","w":"2"},{"u":"D","v":"F","w":"5"},{"u":"E","v":"F","w":"1"}],"hl":["A","B"]},{"note":"再标关键边 BD","nodes":[{"id":"A","v":"0/0","x":0.08,"y":0.4},{"id":"B","v":"3/3","x":0.28,"y":0.18},{"id":"C","v":"2/5","x":0.28,"y":0.65},{"id":"D","v":"7/7","x":0.52,"y":0.32},{"id":"E","v":"9/11","x":0.52,"y":0.7},{"id":"F","v":"12/12","x":0.82,"y":0.5}],"edges":[{"u":"A","v":"B","w":"3","hl":true},{"u":"B","v":"D","w":"4","hl":true},{"u":"A","v":"C","w":"2"},{"u":"C","v":"D","w":"1"},{"u":"C","v":"E","w":"6"},{"u":"D","v":"E","w":"2"},{"u":"D","v":"F","w":"5"},{"u":"E","v":"F","w":"1"}],"hl":["B","D"]},{"note":"再标 DF，路径长 3+4+5=12","nodes":[{"id":"A","v":"0/0","x":0.08,"y":0.4},{"id":"B","v":"3/3","x":0.28,"y":0.18},{"id":"C","v":"2/5","x":0.28,"y":0.65},{"id":"D","v":"7/7","x":0.52,"y":0.32},{"id":"E","v":"9/11","x":0.52,"y":0.7},{"id":"F","v":"12/12","x":0.82,"y":0.5}],"edges":[{"u":"A","v":"B","w":"3","hl":true},{"u":"B","v":"D","w":"4","hl":true},{"u":"D","v":"F","w":"5","hl":true},{"u":"A","v":"C","w":"2"},{"u":"C","v":"D","w":"1"},{"u":"C","v":"E","w":"6"},{"u":"D","v":"E","w":"2"},{"u":"E","v":"F","w":"1"}],"hl":["A","B","D","F"]},{"note":"关键路径 A-B-D-F，长度 12","nodes":[{"id":"A","v":"0/0","x":0.08,"y":0.4},{"id":"B","v":"3/3","x":0.28,"y":0.18},{"id":"C","v":"2/5","x":0.28,"y":0.65},{"id":"D","v":"7/7","x":0.52,"y":0.32},{"id":"E","v":"9/11","x":0.52,"y":0.7},{"id":"F","v":"12/12","x":0.82,"y":0.5}],"edges":[{"u":"A","v":"B","w":"3","hl":true},{"u":"B","v":"D","w":"4","hl":true},{"u":"D","v":"F","w":"5","hl":true}],"hl":["A","B","D","F"]}]};</script>
+<script src="../assets/js/anim.js"></script>
+</body>
+</html>

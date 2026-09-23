@@ -1,0 +1,80 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>图 - 定义, 术语, 性质</title>
+<link rel="stylesheet" href="../assets/css/site.css">
+<link rel="icon" href="data:,">
+</head>
+<body>
+<header class="top">
+  <a class="brand" href="../index.html">408 数据结构</a>
+  <span class="muted">16 / 67</span>
+</header>
+<main class="wrap lesson">
+  <p class="crumb">图</p>
+  <h1>图 - 定义, 术语, 性质</h1>
+  <p>图用顶点与边描述关系，先分清有向无向</p>
+  <div class="stage-wrap"><canvas id="stage" width="960" height="360"></canvas></div>
+  <p id="note"></p>
+  <div class="controls">
+    <button id="prev" type="button">上一步</button>
+    <button id="play" type="button">播放</button>
+    <button id="next" type="button">下一步</button>
+    <span id="step" class="muted"></span>
+    <span class="muted">方向键也可切换</span>
+  </div>
+  <section class="panel">
+    <h2>要点</h2>
+    <ul><li>无向边无方向，有向边有起点终点</li><li>无向图的度是关联边数，有向分出度入度</li><li>完全图边最多；稀疏边少，稠密边多</li><li>连通指任意两点可达；路径不重复边可成环</li></ul>
+    <p class="muted">统计度数：时间 O(n+m)，空间 O(n+m)；与存储结构同阶</p>
+  </section>
+  <section class="panel">
+    <h2>完整 C++ 代码</h2>
+    <p><a href="../c/graph-def.cpp" download>下载 .cpp</a>
+    <button id="copy" type="button">复制</button></p>
+    <pre><code id="code">// 图：定义、术语、性质；统计无向图各顶点的度
+#include &lt;iostream&gt;
+#include &lt;vector&gt;
+using namespace std;
+
+const int N = 5;
+const char* name[N] = {&quot;A&quot;, &quot;B&quot;, &quot;C&quot;, &quot;D&quot;, &quot;E&quot;};
+
+// 无向边：AB BC AC CD DE
+void build(vector&lt;int&gt; adj[N]) {
+    int edges[][2] = {{0, 1}, {1, 2}, {0, 2}, {2, 3}, {3, 4}};
+    for (int i = 0; i &lt; 5; i++) {
+        int u = edges[i][0], v = edges[i][1];
+        adj[u].push_back(v);
+        adj[v].push_back(u);
+    }
+}
+
+int main() {
+    vector&lt;int&gt; adj[N];
+    build(adj);
+
+    cout &lt;&lt; &quot;V={A,B,C,D,E} E={AB,BC,AC,CD,DE}\n&quot;;
+    cout &lt;&lt; &quot;degrees:&quot;;
+    int sum = 0;
+    for (int i = 0; i &lt; N; i++) {
+        int d = (int)adj[i].size();
+        sum += d;
+        cout &lt;&lt; &quot; &quot; &lt;&lt; name[i] &lt;&lt; &quot;=&quot; &lt;&lt; d;
+    }
+    cout &lt;&lt; &quot;\n&quot;;
+    // 握手定理：度数和 = 2|E|
+    cout &lt;&lt; &quot;sum=&quot; &lt;&lt; sum &lt;&lt; &quot; = 2*|E|\n&quot;;
+    cout &lt;&lt; &quot;connected=yes sparse=yes\n&quot;;
+    return 0;
+}
+</code></pre>
+  </section>
+  <nav class="pager"><a href="dsu.html">上一节<br>并查集 - 基本操作，路径压缩，按秩合并</a><a href="adj-matrix.html">下一节<br>图的存储-邻接矩阵</a></nav>
+</main>
+<script>window.LESSON_ANIM={"kind":"graph","frames":[{"note":"五个顶点 A~E，先只看点，还没有边","nodes":[{"id":"A","v":"A","x":0.18,"y":0.35},{"id":"B","v":"B","x":0.4,"y":0.2},{"id":"C","v":"C","x":0.4,"y":0.62},{"id":"D","v":"D","x":0.68,"y":0.35},{"id":"E","v":"E","x":0.88,"y":0.55}],"edges":[],"hl":["A","B","C","D","E"]},{"note":"无向边 AB,BC,AC,CD,DE：线段两端对等","nodes":[{"id":"A","v":"A","x":0.18,"y":0.35},{"id":"B","v":"B","x":0.4,"y":0.2},{"id":"C","v":"C","x":0.4,"y":0.62},{"id":"D","v":"D","x":0.68,"y":0.35},{"id":"E","v":"E","x":0.88,"y":0.55}],"edges":[{"u":"A","v":"B","dir":false,"hl":false},{"u":"B","v":"C","dir":false,"hl":false},{"u":"A","v":"C","dir":false,"hl":false},{"u":"C","v":"D","dir":false,"hl":false},{"u":"D","v":"E","dir":false,"hl":false}],"hl":[]},{"note":"点亮 A：关联 AB、AC，故 deg(A)=2","nodes":[{"id":"A","v":"A","x":0.18,"y":0.35},{"id":"B","v":"B","x":0.4,"y":0.2},{"id":"C","v":"C","x":0.4,"y":0.62},{"id":"D","v":"D","x":0.68,"y":0.35},{"id":"E","v":"E","x":0.88,"y":0.55}],"edges":[{"u":"A","v":"B","dir":false,"hl":true},{"u":"B","v":"C","dir":false,"hl":false},{"u":"A","v":"C","dir":false,"hl":true},{"u":"C","v":"D","dir":false,"hl":false},{"u":"D","v":"E","dir":false,"hl":false}],"hl":["A"]},{"note":"点亮 C：关联 AC、BC、CD，deg(C)=3 最大","nodes":[{"id":"A","v":"A","x":0.18,"y":0.35},{"id":"B","v":"B","x":0.4,"y":0.2},{"id":"C","v":"C","x":0.4,"y":0.62},{"id":"D","v":"D","x":0.68,"y":0.35},{"id":"E","v":"E","x":0.88,"y":0.55}],"edges":[{"u":"A","v":"B","dir":false,"hl":false},{"u":"B","v":"C","dir":false,"hl":true},{"u":"A","v":"C","dir":false,"hl":true},{"u":"C","v":"D","dir":false,"hl":true},{"u":"D","v":"E","dir":false,"hl":false}],"hl":["C"]},{"note":"路径 A-B-C-D-E：沿边走一串顶点","nodes":[{"id":"A","v":"A","x":0.18,"y":0.35},{"id":"B","v":"B","x":0.4,"y":0.2},{"id":"C","v":"C","x":0.4,"y":0.62},{"id":"D","v":"D","x":0.68,"y":0.35},{"id":"E","v":"E","x":0.88,"y":0.55}],"edges":[{"u":"A","v":"B","dir":false,"hl":true},{"u":"B","v":"C","dir":false,"hl":true},{"u":"A","v":"C","dir":false,"hl":false},{"u":"C","v":"D","dir":false,"hl":true},{"u":"D","v":"E","dir":false,"hl":true}],"hl":["A","B","C","D","E"]},{"note":"环 A-B-C-A：回到起点且边不重复","nodes":[{"id":"A","v":"A","x":0.18,"y":0.35},{"id":"B","v":"B","x":0.4,"y":0.2},{"id":"C","v":"C","x":0.4,"y":0.62},{"id":"D","v":"D","x":0.68,"y":0.35},{"id":"E","v":"E","x":0.88,"y":0.55}],"edges":[{"u":"A","v":"B","dir":false,"hl":true},{"u":"B","v":"C","dir":false,"hl":true},{"u":"A","v":"C","dir":false,"hl":true},{"u":"C","v":"D","dir":false,"hl":false},{"u":"D","v":"E","dir":false,"hl":false}],"hl":["A","B","C"]},{"note":"整图连通：任意两点都有路径可达","nodes":[{"id":"A","v":"A","x":0.18,"y":0.35},{"id":"B","v":"B","x":0.4,"y":0.2},{"id":"C","v":"C","x":0.4,"y":0.62},{"id":"D","v":"D","x":0.68,"y":0.35},{"id":"E","v":"E","x":0.88,"y":0.55}],"edges":[{"u":"A","v":"B","dir":false,"hl":true},{"u":"B","v":"C","dir":false,"hl":true},{"u":"A","v":"C","dir":false,"hl":true},{"u":"C","v":"D","dir":false,"hl":true},{"u":"D","v":"E","dir":false,"hl":true}],"hl":["A","B","C","D","E"]},{"note":"边数 5，相对 n^2 很少，属于稀疏图","nodes":[{"id":"A","v":"A","x":0.18,"y":0.35},{"id":"B","v":"B","x":0.4,"y":0.2},{"id":"C","v":"C","x":0.4,"y":0.62},{"id":"D","v":"D","x":0.68,"y":0.35},{"id":"E","v":"E","x":0.88,"y":0.55}],"edges":[{"u":"A","v":"B","dir":false,"hl":false},{"u":"B","v":"C","dir":false,"hl":false},{"u":"A","v":"C","dir":false,"hl":false},{"u":"C","v":"D","dir":false,"hl":false},{"u":"D","v":"E","dir":false,"hl":false}],"hl":[]},{"note":"若每对顶点都有边才是完全图，此处不是","nodes":[{"id":"A","v":"A","x":0.18,"y":0.35},{"id":"B","v":"B","x":0.4,"y":0.2},{"id":"C","v":"C","x":0.4,"y":0.62},{"id":"D","v":"D","x":0.68,"y":0.35},{"id":"E","v":"E","x":0.88,"y":0.55}],"edges":[{"u":"A","v":"B","dir":false,"hl":false},{"u":"B","v":"C","dir":false,"hl":false},{"u":"A","v":"C","dir":false,"hl":false},{"u":"C","v":"D","dir":false,"hl":false},{"u":"D","v":"E","dir":false,"hl":false}],"hl":["A","E"]},{"note":"度数和 2+2+3+2+1=10，等于 2×边数","nodes":[{"id":"A","v":"A","x":0.18,"y":0.35},{"id":"B","v":"B","x":0.4,"y":0.2},{"id":"C","v":"C","x":0.4,"y":0.62},{"id":"D","v":"D","x":0.68,"y":0.35},{"id":"E","v":"E","x":0.88,"y":0.55}],"edges":[{"u":"A","v":"B","dir":false,"hl":false},{"u":"B","v":"C","dir":false,"hl":false},{"u":"A","v":"C","dir":false,"hl":false},{"u":"C","v":"D","dir":false,"hl":false},{"u":"D","v":"E","dir":false,"hl":false}],"hl":["A","B","C","D","E"]}]};</script>
+<script src="../assets/js/anim.js"></script>
+</body>
+</html>

@@ -1,0 +1,10 @@
+{
+  "blurb": "折半定位后右移腾位再写入",
+  "points": [
+    "low/high 夹逼有序区，mid 取中点比较",
+    "a[mid]>key 则 high=mid-1，否则 low=mid+1",
+    "定位后仍整段右移，移动量与直接插入同",
+    "相等走 low=mid+1，保持稳定，结果有序"
+  ],
+  "complexity": "比较约 O(n log n)，移动最坏/平均 O(n^2)；空间 O(1)；稳定"
+}

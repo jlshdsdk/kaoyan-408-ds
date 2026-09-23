@@ -1,0 +1,125 @@
+{
+  "kind": "matrix",
+  "frames": [
+    {
+      "note": "树形：A 的孩子 B、C，B 的孩子 D",
+      "colHead": ["node", "info"],
+      "rows": [
+        ["A", "root"],
+        ["B", "child of A"],
+        ["C", "child of A"],
+        ["D", "child of B"]
+      ],
+      "hl": []
+    },
+    {
+      "note": "双亲表示法：数组存 data 与 parent 下标",
+      "colHead": ["i", "data", "parent"],
+      "rows": [
+        ["0", "A", "-1"],
+        ["1", "B", "0"],
+        ["2", "C", "0"],
+        ["3", "D", "1"]
+      ],
+      "hl": [[0, 2]]
+    },
+    {
+      "note": "看 B：parent=0 指向 A，找父只要 O(1)",
+      "colHead": ["i", "data", "parent"],
+      "rows": [
+        ["0", "A", "-1"],
+        ["1", "B", "0"],
+        ["2", "C", "0"],
+        ["3", "D", "1"]
+      ],
+      "hl": [[1, 0], [1, 2], [0, 1]]
+    },
+    {
+      "note": "看 D：parent=1 指向 B",
+      "colHead": ["i", "data", "parent"],
+      "rows": [
+        ["0", "A", "-1"],
+        ["1", "B", "0"],
+        ["2", "C", "0"],
+        ["3", "D", "1"]
+      ],
+      "hl": [[3, 2], [1, 1]]
+    },
+    {
+      "note": "孩子表示法：每个结点一条孩子链表",
+      "colHead": ["node", "children"],
+      "rows": [
+        ["A", "B -> C"],
+        ["B", "D"],
+        ["C", "(empty)"],
+        ["D", "(empty)"]
+      ],
+      "hl": []
+    },
+    {
+      "note": "A 的孩子链：先 B 再 C",
+      "colHead": ["node", "children"],
+      "rows": [
+        ["A", "B -> C"],
+        ["B", "D"],
+        ["C", "(empty)"],
+        ["D", "(empty)"]
+      ],
+      "hl": [[0, 1]]
+    },
+    {
+      "note": "B 的孩子链只有 D",
+      "colHead": ["node", "children"],
+      "rows": [
+        ["A", "B -> C"],
+        ["B", "D"],
+        ["C", "(empty)"],
+        ["D", "(empty)"]
+      ],
+      "hl": [[1, 1]]
+    },
+    {
+      "note": "孩子兄弟表示：first_child + next_sibling",
+      "colHead": ["node", "child", "sibling"],
+      "rows": [
+        ["A", "B", "-"],
+        ["B", "D", "C"],
+        ["C", "-", "-"],
+        ["D", "-", "-"]
+      ],
+      "hl": []
+    },
+    {
+      "note": "A.first_child=B，B.next_sibling=C",
+      "colHead": ["node", "child", "sibling"],
+      "rows": [
+        ["A", "B", "-"],
+        ["B", "D", "C"],
+        ["C", "-", "-"],
+        ["D", "-", "-"]
+      ],
+      "hl": [[0, 1], [1, 2]]
+    },
+    {
+      "note": "B.first_child=D，与双亲/孩子数据一致",
+      "colHead": ["node", "child", "sibling"],
+      "rows": [
+        ["A", "B", "-"],
+        ["B", "D", "C"],
+        ["C", "-", "-"],
+        ["D", "-", "-"]
+      ],
+      "hl": [[1, 1]]
+    },
+    {
+      "note": "三种存的是同一棵树，只是指针含义不同",
+      "colHead": ["method", "key field"],
+      "rows": [
+        ["parent", "parent idx"],
+        ["children", "child list"],
+        ["child-sib", "child+sib"]
+      ],
+      "hl": [[0, 0], [1, 0], [2, 0]]
+    }
+  ]
+}

@@ -1,0 +1,159 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>平衡二叉树(AVL树)</title>
+<link rel="stylesheet" href="../assets/css/site.css">
+<link rel="icon" href="data:,">
+</head>
+<body>
+<header class="top">
+  <a class="brand" href="../index.html">408 数据结构</a>
+  <span class="muted">39 / 67</span>
+</header>
+<main class="wrap lesson">
+  <p class="crumb">查找</p>
+  <h1>平衡二叉树(AVL树)</h1>
+  <p>AVL用旋转把平衡因子压在-1到1</p>
+  <div class="stage-wrap"><canvas id="stage" width="960" height="360"></canvas></div>
+  <p id="note"></p>
+  <div class="controls">
+    <button id="prev" type="button">上一步</button>
+    <button id="play" type="button">播放</button>
+    <button id="next" type="button">下一步</button>
+    <span id="step" class="muted"></span>
+    <span class="muted">方向键也可切换</span>
+  </div>
+  <section class="panel">
+    <h2>要点</h2>
+    <ul><li>平衡因子=左高减右高，合法值只有-1、0、1</li><li>LL：左左失衡，对失衡点做右旋</li><li>RR：右右失衡，对失衡点做左旋</li><li>LR/RL：先旋子树成单旋，再对失衡点单旋</li></ul>
+    <p class="muted">查找/插入/删除最好最坏平均均 O(log n)；空间 O(n)；单次旋转 O(1)</p>
+  </section>
+  <section class="panel">
+    <h2>完整 C++ 代码</h2>
+    <p><a href="../c/avl.cpp" download>下载 .cpp</a>
+    <button id="copy" type="button">复制</button></p>
+    <pre><code id="code">// AVL: LL then LR; four rotations; print inorder and balance factors
+#include &lt;iostream&gt;
+#include &lt;algorithm&gt;
+using namespace std;
+
+struct Node {
+    int key;
+    int h;
+    Node* left;
+    Node* right;
+    Node(int k) : key(k), h(1), left(nullptr), right(nullptr) {}
+};
+
+int height(Node* p) { return p ? p-&gt;h : 0; }
+
+void update(Node* p) {
+    if (p) p-&gt;h = 1 + max(height(p-&gt;left), height(p-&gt;right));
+}
+
+int bf(Node* p) { return p ? height(p-&gt;left) - height(p-&gt;right) : 0; }
+
+// RR: left rotate
+Node* rotateLeft(Node* x) {
+    Node* y = x-&gt;right;
+    Node* t = y-&gt;left;
+    y-&gt;left = x;
+    x-&gt;right = t;
+    update(x);
+    update(y);
+    return y;
+}
+
+// LL: right rotate
+Node* rotateRight(Node* y) {
+    Node* x = y-&gt;left;
+    Node* t = x-&gt;right;
+    x-&gt;right = y;
+    y-&gt;left = t;
+    update(y);
+    update(x);
+    return x;
+}
+
+// LR: left on left-child, then right on root
+Node* rotateLR(Node* z) {
+    z-&gt;left = rotateLeft(z-&gt;left);
+    return rotateRight(z);
+}
+
+// RL: right on right-child, then left on root
+Node* rotateRL(Node* z) {
+    z-&gt;right = rotateRight(z-&gt;right);
+    return rotateLeft(z);
+}
+
+Node* insert(Node* root, int key) {
+    if (!root) return new Node(key);
+    if (key &lt; root-&gt;key) root-&gt;left = insert(root-&gt;left, key);
+    else if (key &gt; root-&gt;key) root-&gt;right = insert(root-&gt;right, key);
+    else return root;
+
+    update(root);
+    int b = bf(root);
+    if (b &gt; 1 &amp;&amp; key &lt; root-&gt;left-&gt;key) return rotateRight(root);      // LL
+    if (b &lt; -1 &amp;&amp; key &gt; root-&gt;right-&gt;key) return rotateLeft(root);     // RR
+    if (b &gt; 1 &amp;&amp; key &gt; root-&gt;left-&gt;key) return rotateLR(root);         // LR
+    if (b &lt; -1 &amp;&amp; key &lt; root-&gt;right-&gt;key) return rotateRL(root);       // RL
+    return root;
+}
+
+void inorder(Node* p) {
+    if (!p) return;
+    inorder(p-&gt;left);
+    cout &lt;&lt; p-&gt;key &lt;&lt; &quot;(bf=&quot; &lt;&lt; bf(p) &lt;&lt; &quot;) &quot;;
+    inorder(p-&gt;right);
+}
+
+bool checkBF(Node* p) {
+    if (!p) return true;
+    int b = bf(p);
+    if (b &lt; -1 || b &gt; 1) return false;
+    if (p-&gt;h != 1 + max(height(p-&gt;left), height(p-&gt;right))) return false;
+    return checkBF(p-&gt;left) &amp;&amp; checkBF(p-&gt;right);
+}
+
+void freeTree(Node* p) {
+    if (!p) return;
+    freeTree(p-&gt;left);
+    freeTree(p-&gt;right);
+    delete p;
+}
+
+int main() {
+    // LL: 30, 20, 10
+    Node* t1 = nullptr;
+    int ll[] = {30, 20, 10};
+    for (int k : ll) t1 = insert(t1, k);
+    cout &lt;&lt; &quot;LL inorder: &quot;;
+    inorder(t1);
+    cout &lt;&lt; &quot;\n&quot;;
+    cout &lt;&lt; (checkBF(t1) ? &quot;LL OK\n&quot; : &quot;LL BAD\n&quot;);
+
+    // LR: 30, 10, 20
+    Node* t2 = nullptr;
+    int lr[] = {30, 10, 20};
+    for (int k : lr) t2 = insert(t2, k);
+    cout &lt;&lt; &quot;LR inorder: &quot;;
+    inorder(t2);
+    cout &lt;&lt; &quot;\n&quot;;
+    cout &lt;&lt; (checkBF(t2) ? &quot;LR OK\n&quot; : &quot;LR BAD\n&quot;);
+
+    freeTree(t1);
+    freeTree(t2);
+    return 0;
+}
+</code></pre>
+  </section>
+  <nav class="pager"><a href="bst-check.html">上一节<br>判断是否为二叉搜索树(二叉排序树)代码(C/C++实现)</a><a href="rbt-insert.html">下一节<br>红黑树 - 定义, 插入, 构建</a></nav>
+</main>
+<script>window.LESSON_ANIM={"kind":"graph","frames":[{"note":"LL：插入 30，先成单结点树","nodes":[{"id":"a","v":"30","x":0.5,"y":0.35}],"edges":[],"hl":["a"]},{"note":"再插 20，挂在 30 左侧","nodes":[{"id":"a","v":"30","x":0.55,"y":0.25},{"id":"b","v":"20","x":0.35,"y":0.55}],"edges":[{"u":"a","v":"b","dir":true}],"hl":["b"]},{"note":"再插 10，30 的 bf 变成 2，左左失衡","nodes":[{"id":"a","v":"30","x":0.6,"y":0.2},{"id":"b","v":"20","x":0.4,"y":0.45},{"id":"c","v":"10","x":0.25,"y":0.7}],"edges":[{"u":"a","v":"b","dir":true,"hl":true},{"u":"b","v":"c","dir":true,"hl":true}],"hl":["a"]},{"note":"对 30 右旋（LL），20 升为根","nodes":[{"id":"b","v":"20","x":0.5,"y":0.25},{"id":"c","v":"10","x":0.3,"y":0.55},{"id":"a","v":"30","x":0.7,"y":0.55}],"edges":[{"u":"b","v":"c","dir":true},{"u":"b","v":"a","dir":true}],"hl":["b"]},{"note":"LL 完成：中序 10 20 30，各点 bf 均为 0","nodes":[{"id":"b","v":"20","x":0.5,"y":0.25},{"id":"c","v":"10","x":0.3,"y":0.55},{"id":"a","v":"30","x":0.7,"y":0.55}],"edges":[{"u":"b","v":"c","dir":true},{"u":"b","v":"a","dir":true}],"hl":[]},{"note":"LR：另建树，先插 30","nodes":[{"id":"a","v":"30","x":0.5,"y":0.35}],"edges":[],"hl":["a"]},{"note":"再插 10，挂在 30 左侧","nodes":[{"id":"a","v":"30","x":0.55,"y":0.25},{"id":"b","v":"10","x":0.35,"y":0.55}],"edges":[{"u":"a","v":"b","dir":true}],"hl":["b"]},{"note":"再插 20，成左右型，准备 LR","nodes":[{"id":"a","v":"30","x":0.6,"y":0.2},{"id":"b","v":"10","x":0.35,"y":0.45},{"id":"c","v":"20","x":0.5,"y":0.7}],"edges":[{"u":"a","v":"b","dir":true,"hl":true},{"u":"b","v":"c","dir":true,"hl":true}],"hl":["a","c"]},{"note":"先对 10 左旋，拐成左左","nodes":[{"id":"a","v":"30","x":0.65,"y":0.2},{"id":"c","v":"20","x":0.45,"y":0.45},{"id":"b","v":"10","x":0.3,"y":0.7}],"edges":[{"u":"a","v":"c","dir":true},{"u":"c","v":"b","dir":true}],"hl":["c"]},{"note":"再对 30 右旋，20 成为根","nodes":[{"id":"c","v":"20","x":0.5,"y":0.25},{"id":"b","v":"10","x":0.3,"y":0.55},{"id":"a","v":"30","x":0.7,"y":0.55}],"edges":[{"u":"c","v":"b","dir":true},{"u":"c","v":"a","dir":true}],"hl":["c"]},{"note":"LR 完成：同样中序 10 20 30，bf 均合法","nodes":[{"id":"c","v":"20","x":0.5,"y":0.25},{"id":"b","v":"10","x":0.3,"y":0.55},{"id":"a","v":"30","x":0.7,"y":0.55}],"edges":[{"u":"c","v":"b","dir":true},{"u":"c","v":"a","dir":true}],"hl":[]}]};</script>
+<script src="../assets/js/anim.js"></script>
+</body>
+</html>

@@ -1,0 +1,174 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>秒杀系列-前后缀表达式计算</title>
+<link rel="stylesheet" href="../assets/css/site.css">
+<link rel="icon" href="data:,">
+</head>
+<body>
+<header class="top">
+  <a class="brand" href="../index.html">408 数据结构</a>
+  <span class="muted">65 / 67</span>
+</header>
+<main class="wrap lesson">
+  <p class="crumb">常见题型</p>
+  <h1>秒杀系列-前后缀表达式计算</h1>
+  <p>后缀从左扫、前缀从右扫，用栈算二元运算</p>
+  <div class="stage-wrap"><canvas id="stage" width="960" height="360"></canvas></div>
+  <p id="note"></p>
+  <div class="controls">
+    <button id="prev" type="button">上一步</button>
+    <button id="play" type="button">播放</button>
+    <button id="next" type="button">下一步</button>
+    <span id="step" class="muted"></span>
+    <span class="muted">方向键也可切换</span>
+  </div>
+  <section class="panel">
+    <h2>要点</h2>
+    <ul><li>后缀：数字入栈，运算符弹两数运算后再压回</li><li>弹栈顺序：先弹的是右操作数</li><li>前缀对称：从右往左扫，先弹的是左操作数</li><li>算完栈里应只剩一个结果，否则表达式非法</li></ul>
+    <p class="muted">时间 O(n)，空间 O(n)；n 为 token 个数</p>
+  </section>
+  <section class="panel">
+    <h2>完整 C++ 代码</h2>
+    <p><a href="../c/expr-eval.cpp" download>下载 .cpp</a>
+    <button id="copy" type="button">复制</button></p>
+    <pre><code id="code">// 后缀表达式求值（顺带演示前缀：从右往左）
+#include &lt;iostream&gt;
+#include &lt;string&gt;
+#include &lt;vector&gt;
+#include &lt;cctype&gt;
+using namespace std;
+
+const int MAXS = 128;
+
+struct IntStack {
+    int a[MAXS];
+    int top;
+};
+
+void stInit(IntStack&amp; s) { s.top = -1; }
+bool stEmpty(const IntStack&amp; s) { return s.top &lt; 0; }
+bool stFull(const IntStack&amp; s) { return s.top &gt;= MAXS - 1; }
+
+bool stPush(IntStack&amp; s, int x) {
+    if (stFull(s)) {
+        cout &lt;&lt; &quot;error\n&quot;;
+        return false;
+    }
+    s.a[++s.top] = x;
+    return true;
+}
+
+bool stPop(IntStack&amp; s, int&amp; out) {
+    if (stEmpty(s)) {
+        cout &lt;&lt; &quot;error\n&quot;;
+        return false;
+    }
+    out = s.a[s.top--];
+    return true;
+}
+
+bool applyOp(char op, int a, int b, int&amp; out) {
+    if (op == &#x27;+&#x27;) out = a + b;
+    else if (op == &#x27;-&#x27;) out = a - b;
+    else if (op == &#x27;*&#x27;) out = a * b;
+    else if (op == &#x27;/&#x27;) {
+        if (b == 0) {
+            cout &lt;&lt; &quot;error\n&quot;;
+            return false;
+        }
+        out = a / b;
+    } else {
+        cout &lt;&lt; &quot;error\n&quot;;
+        return false;
+    }
+    return true;
+}
+
+// 后缀：从左到右，遇运算数入栈，遇运算符弹两个算完再入栈
+bool evalPostfix(const vector&lt;string&gt;&amp; tok, int&amp; result) {
+    IntStack s;
+    stInit(s);
+    for (size_t i = 0; i &lt; tok.size(); i++) {
+        const string&amp; t = tok[i];
+        if (t.size() == 1 &amp;&amp; (t[0] == &#x27;+&#x27; || t[0] == &#x27;-&#x27; || t[0] == &#x27;*&#x27; || t[0] == &#x27;/&#x27;)) {
+            int b = 0, a = 0, r = 0;
+            if (!stPop(s, b) || !stPop(s, a)) return false;
+            if (!applyOp(t[0], a, b, r)) return false;
+            if (!stPush(s, r)) return false;
+        } else {
+            int v = 0;
+            for (size_t k = 0; k &lt; t.size(); k++) {
+                if (!isdigit((unsigned char)t[k])) {
+                    cout &lt;&lt; &quot;error\n&quot;;
+                    return false;
+                }
+                v = v * 10 + (t[k] - &#x27;0&#x27;);
+            }
+            if (!stPush(s, v)) return false;
+        }
+    }
+    if (s.top != 0) {
+        cout &lt;&lt; &quot;error\n&quot;;
+        return false;
+    }
+    result = s.a[0];
+    return true;
+}
+
+// 前缀：从右到左扫，规则对称
+bool evalPrefix(const vector&lt;string&gt;&amp; tok, int&amp; result) {
+    IntStack s;
+    stInit(s);
+    for (int i = (int)tok.size() - 1; i &gt;= 0; i--) {
+        const string&amp; t = tok[i];
+        if (t.size() == 1 &amp;&amp; (t[0] == &#x27;+&#x27; || t[0] == &#x27;-&#x27; || t[0] == &#x27;*&#x27; || t[0] == &#x27;/&#x27;)) {
+            int a = 0, b = 0, r = 0;
+            if (!stPop(s, a) || !stPop(s, b)) return false;
+            if (!applyOp(t[0], a, b, r)) return false;
+            if (!stPush(s, r)) return false;
+        } else {
+            int v = 0;
+            for (size_t k = 0; k &lt; t.size(); k++) {
+                if (!isdigit((unsigned char)t[k])) {
+                    cout &lt;&lt; &quot;error\n&quot;;
+                    return false;
+                }
+                v = v * 10 + (t[k] - &#x27;0&#x27;);
+            }
+            if (!stPush(s, v)) return false;
+        }
+    }
+    if (s.top != 0) {
+        cout &lt;&lt; &quot;error\n&quot;;
+        return false;
+    }
+    result = s.a[0];
+    return true;
+}
+
+int main() {
+    // 后缀 2 3 + 4 * = (2+3)*4 = 20
+    vector&lt;string&gt; post = {&quot;2&quot;, &quot;3&quot;, &quot;+&quot;, &quot;4&quot;, &quot;*&quot;};
+    int r = 0;
+    if (evalPostfix(post, r)) cout &lt;&lt; &quot;postfix=20? &quot; &lt;&lt; r &lt;&lt; &quot;\n&quot;;
+
+    // 对应前缀 * + 2 3 4
+    vector&lt;string&gt; pre = {&quot;*&quot;, &quot;+&quot;, &quot;2&quot;, &quot;3&quot;, &quot;4&quot;};
+    if (evalPrefix(pre, r)) cout &lt;&lt; &quot;prefix=&quot; &lt;&lt; r &lt;&lt; &quot;\n&quot;;
+
+    // 空表达式
+    vector&lt;string&gt; empty;
+    if (!evalPostfix(empty, r)) { /* error */ }
+    return 0;
+}
+</code></pre>
+  </section>
+  <nav class="pager"><a href="radix-code.html">上一节<br>基数排序代码(C/C++链式实现)</a><a href="expr-convert.html">下一节<br>秒杀系列-中缀表达式转前后缀表达式</a></nav>
+</main>
+<script>window.LESSON_ANIM={"kind":"stack","frames":[{"note":"后缀：2 3 + 4 *，栈空","cells":[],"top":-1,"out":""},{"note":"读到 2，入栈","cells":["2"],"top":0,"out":""},{"note":"读到 3，入栈","cells":["2","3"],"top":1,"out":""},{"note":"读到 +，准备弹两个操作数","cells":["2","3"],"top":1,"out":"+"},{"note":"弹出 3 和 2，算 2+3=5","cells":[],"top":-1,"out":"2+3=5"},{"note":"把 5 压回栈","cells":["5"],"top":0,"out":""},{"note":"读到 4，入栈","cells":["5","4"],"top":1,"out":""},{"note":"读到 *，准备弹两个操作数","cells":["5","4"],"top":1,"out":"*"},{"note":"弹出 4 和 5，算 5*4=20","cells":[],"top":-1,"out":"5*4=20"},{"note":"压回 20，表达式结束","cells":["20"],"top":0,"out":"20"},{"note":"栈中独留 20，即最终结果","cells":["20"],"top":0,"out":"result=20"}]};</script>
+<script src="../assets/js/anim.js"></script>
+</body>
+</html>

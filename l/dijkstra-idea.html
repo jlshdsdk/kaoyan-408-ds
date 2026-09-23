@@ -1,0 +1,93 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>最短路径-Dijkstra(迪杰斯特拉)算法</title>
+<link rel="stylesheet" href="../assets/css/site.css">
+<link rel="icon" href="data:,">
+</head>
+<body>
+<header class="top">
+  <a class="brand" href="../index.html">408 数据结构</a>
+  <span class="muted">25 / 67</span>
+</header>
+<main class="wrap lesson">
+  <p class="crumb">图</p>
+  <h1>最短路径-Dijkstra(迪杰斯特拉)算法</h1>
+  <p>每次锁定当前最近未定点，松弛邻边</p>
+  <div class="stage-wrap"><canvas id="stage" width="960" height="360"></canvas></div>
+  <p id="note"></p>
+  <div class="controls">
+    <button id="prev" type="button">上一步</button>
+    <button id="play" type="button">播放</button>
+    <button id="next" type="button">下一步</button>
+    <span id="step" class="muted"></span>
+    <span class="muted">方向键也可切换</span>
+  </div>
+  <section class="panel">
+    <h2>要点</h2>
+    <ul><li>贪心：未定点里 dist 最小的先确定</li><li>确定后只向外松弛，不再改它自己</li><li>负权会破坏“已锁定不再变短”的假设</li><li>本图源 A：A0 B2 C3 D4 E5</li></ul>
+    <p class="muted">朴素实现时间 O(V^2)；堆优化约 O((V+E) log V)；空间 O(V)</p>
+  </section>
+  <section class="panel">
+    <h2>完整 C++ 代码</h2>
+    <p><a href="../c/dijkstra-idea.cpp" download>下载 .cpp</a>
+    <button id="copy" type="button">复制</button></p>
+    <pre><code id="code">// Dijkstra 思想演示：源点 A，逐步确定最短路
+#include &lt;iostream&gt;
+using namespace std;
+
+const int N = 5;
+const int INF = 1e9;
+
+// A-&gt;B2 A-&gt;C5 B-&gt;C1 B-&gt;D4 C-&gt;D1 C-&gt;E3 D-&gt;E1
+int g[N][N] = {
+    {0, 2, 5, INF, INF},
+    {INF, 0, 1, 4, INF},
+    {INF, INF, 0, 1, 3},
+    {INF, INF, INF, 0, 1},
+    {INF, INF, INF, INF, 0}
+};
+
+char name(int i) { return char(&#x27;A&#x27; + i); }
+
+int main() {
+    int dist[N];
+    bool done[N] = {false};
+    for (int i = 0; i &lt; N; i++) dist[i] = INF;
+    dist[0] = 0;
+
+    cout &lt;&lt; &quot;why no negative: greed locks a node forever\n&quot;;
+    cout &lt;&lt; &quot;settle order:&quot;;
+    for (int step = 0; step &lt; N; step++) {
+        int u = -1;
+        for (int i = 0; i &lt; N; i++) {
+            if (!done[i] &amp;&amp; (u &lt; 0 || dist[i] &lt; dist[u])) u = i;
+        }
+        if (u &lt; 0 || dist[u] &gt;= INF) {
+            cout &lt;&lt; &quot;\nerror\n&quot;;
+            return 0;
+        }
+        done[u] = true;
+        cout &lt;&lt; &quot; &quot; &lt;&lt; name(u);
+        for (int v = 0; v &lt; N; v++) {
+            if (!done[v] &amp;&amp; g[u][v] &lt; INF &amp;&amp; dist[u] + g[u][v] &lt; dist[v]) {
+                dist[v] = dist[u] + g[u][v];
+            }
+        }
+    }
+    cout &lt;&lt; &quot;\n&quot;;
+    for (int i = 0; i &lt; N; i++) {
+        cout &lt;&lt; name(i) &lt;&lt; &quot;:&quot; &lt;&lt; dist[i] &lt;&lt; &quot;\n&quot;;
+    }
+    return 0;
+}
+</code></pre>
+  </section>
+  <nav class="pager"><a href="kruskal-code.html">上一节<br>最小生成树-Kruskal(克鲁斯卡尔)算法代码(C/C++实现)</a><a href="dijkstra-code.html">下一节<br>最短路径-Dijkstra(迪杰斯特拉)算法代码(C/C++实现)</a></nav>
+</main>
+<script>window.LESSON_ANIM={"kind":"graph","frames":[{"note":"有向带权，源点 A，dist 初值 A=0 其余∞","nodes":[{"id":"A","v":"A0","x":0.1,"y":0.4},{"id":"B","v":"B?","x":0.32,"y":0.18},{"id":"C","v":"C?","x":0.32,"y":0.65},{"id":"D","v":"D?","x":0.58,"y":0.4},{"id":"E","v":"E?","x":0.85,"y":0.4}],"edges":[{"u":"A","v":"B","w":"2"},{"u":"A","v":"C","w":"5"},{"u":"B","v":"C","w":"1"},{"u":"B","v":"D","w":"4"},{"u":"C","v":"D","w":"1"},{"u":"C","v":"E","w":"3"},{"u":"D","v":"E","w":"1"}],"hl":["A"]},{"note":"锁定 A，松弛得 B=2、C=5","nodes":[{"id":"A","v":"A0","x":0.1,"y":0.4},{"id":"B","v":"B2","x":0.32,"y":0.18},{"id":"C","v":"C5","x":0.32,"y":0.65},{"id":"D","v":"D?","x":0.58,"y":0.4},{"id":"E","v":"E?","x":0.85,"y":0.4}],"edges":[{"u":"A","v":"B","w":"2","hl":true},{"u":"A","v":"C","w":"5","hl":true},{"u":"B","v":"C","w":"1"},{"u":"B","v":"D","w":"4"},{"u":"C","v":"D","w":"1"},{"u":"C","v":"E","w":"3"},{"u":"D","v":"E","w":"1"}],"hl":["A"]},{"note":"未定点里 B 最近，锁定 B","nodes":[{"id":"A","v":"A0","x":0.1,"y":0.4},{"id":"B","v":"B2","x":0.32,"y":0.18},{"id":"C","v":"C5","x":0.32,"y":0.65},{"id":"D","v":"D?","x":0.58,"y":0.4},{"id":"E","v":"E?","x":0.85,"y":0.4}],"edges":[{"u":"A","v":"B","w":"2","hl":true},{"u":"A","v":"C","w":"5"},{"u":"B","v":"C","w":"1"},{"u":"B","v":"D","w":"4"},{"u":"C","v":"D","w":"1"},{"u":"C","v":"E","w":"3"},{"u":"D","v":"E","w":"1"}],"hl":["A","B"]},{"note":"经 B：C 改为 2+1=3，D=2+4=6","nodes":[{"id":"A","v":"A0","x":0.1,"y":0.4},{"id":"B","v":"B2","x":0.32,"y":0.18},{"id":"C","v":"C3","x":0.32,"y":0.65},{"id":"D","v":"D6","x":0.58,"y":0.4},{"id":"E","v":"E?","x":0.85,"y":0.4}],"edges":[{"u":"A","v":"B","w":"2","hl":true},{"u":"A","v":"C","w":"5"},{"u":"B","v":"C","w":"1","hl":true},{"u":"B","v":"D","w":"4","hl":true},{"u":"C","v":"D","w":"1"},{"u":"C","v":"E","w":"3"},{"u":"D","v":"E","w":"1"}],"hl":["B","C","D"]},{"note":"锁定 C=3，继续松弛","nodes":[{"id":"A","v":"A0","x":0.1,"y":0.4},{"id":"B","v":"B2","x":0.32,"y":0.18},{"id":"C","v":"C3","x":0.32,"y":0.65},{"id":"D","v":"D6","x":0.58,"y":0.4},{"id":"E","v":"E?","x":0.85,"y":0.4}],"edges":[{"u":"A","v":"B","w":"2","hl":true},{"u":"B","v":"C","w":"1","hl":true},{"u":"B","v":"D","w":"4"},{"u":"C","v":"D","w":"1"},{"u":"C","v":"E","w":"3"},{"u":"D","v":"E","w":"1"}],"hl":["A","B","C"]},{"note":"经 C：D 改为 3+1=4，E=3+3=6","nodes":[{"id":"A","v":"A0","x":0.1,"y":0.4},{"id":"B","v":"B2","x":0.32,"y":0.18},{"id":"C","v":"C3","x":0.32,"y":0.65},{"id":"D","v":"D4","x":0.58,"y":0.4},{"id":"E","v":"E6","x":0.85,"y":0.4}],"edges":[{"u":"A","v":"B","w":"2","hl":true},{"u":"B","v":"C","w":"1","hl":true},{"u":"C","v":"D","w":"1","hl":true},{"u":"C","v":"E","w":"3","hl":true},{"u":"D","v":"E","w":"1"}],"hl":["C","D","E"]},{"note":"锁定 D=4，松弛 E 为 4+1=5","nodes":[{"id":"A","v":"A0","x":0.1,"y":0.4},{"id":"B","v":"B2","x":0.32,"y":0.18},{"id":"C","v":"C3","x":0.32,"y":0.65},{"id":"D","v":"D4","x":0.58,"y":0.4},{"id":"E","v":"E5","x":0.85,"y":0.4}],"edges":[{"u":"A","v":"B","w":"2","hl":true},{"u":"B","v":"C","w":"1","hl":true},{"u":"C","v":"D","w":"1","hl":true},{"u":"D","v":"E","w":"1","hl":true}],"hl":["A","B","C","D"]},{"note":"最后锁定 E=5，全源最短路完成","nodes":[{"id":"A","v":"A0","x":0.1,"y":0.4},{"id":"B","v":"B2","x":0.32,"y":0.18},{"id":"C","v":"C3","x":0.32,"y":0.65},{"id":"D","v":"D4","x":0.58,"y":0.4},{"id":"E","v":"E5","x":0.85,"y":0.4}],"edges":[{"u":"A","v":"B","w":"2","hl":true},{"u":"B","v":"C","w":"1","hl":true},{"u":"C","v":"D","w":"1","hl":true},{"u":"D","v":"E","w":"1","hl":true}],"hl":["A","B","C","D","E"]},{"note":"负权会使已锁定点还能更短，故禁用","nodes":[{"id":"A","v":"A0","x":0.1,"y":0.4},{"id":"B","v":"B2","x":0.32,"y":0.18},{"id":"C","v":"C3","x":0.32,"y":0.65},{"id":"D","v":"D4","x":0.58,"y":0.4},{"id":"E","v":"E5","x":0.85,"y":0.4}],"edges":[{"u":"A","v":"B","w":"2","hl":true},{"u":"B","v":"C","w":"1","hl":true},{"u":"C","v":"D","w":"1","hl":true},{"u":"D","v":"E","w":"1","hl":true}],"hl":["A","B","C","D","E"]}]};</script>
+<script src="../assets/js/anim.js"></script>
+</body>
+</html>

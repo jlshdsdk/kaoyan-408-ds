@@ -1,0 +1,90 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>归并排序</title>
+<link rel="stylesheet" href="../assets/css/site.css">
+<link rel="icon" href="data:,">
+</head>
+<body>
+<header class="top">
+  <a class="brand" href="../index.html">408 数据结构</a>
+  <span class="muted">61 / 67</span>
+</header>
+<main class="wrap lesson">
+  <p class="crumb">排序</p>
+  <h1>归并排序</h1>
+  <p>先两两归并有序段，再逐层扩大</p>
+  <div class="stage-wrap"><canvas id="stage" width="960" height="360"></canvas></div>
+  <p id="note"></p>
+  <div class="controls">
+    <button id="prev" type="button">上一步</button>
+    <button id="play" type="button">播放</button>
+    <button id="next" type="button">下一步</button>
+    <span id="step" class="muted"></span>
+    <span class="muted">方向键也可切换</span>
+  </div>
+  <section class="panel">
+    <h2>要点</h2>
+    <ul><li>相邻有序段两两合并成更长有序段</li><li>合并时用辅助数组，相等取左边保持稳定</li><li>需要 O(n) 额外空间存放归并结果</li><li>稳定，适合外排序等大数据场景</li></ul>
+    <p class="muted">时间最好/最坏/平均 O(n log n)；空间 O(n)；稳定</p>
+  </section>
+  <section class="panel">
+    <h2>完整 C++ 代码</h2>
+    <p><a href="../c/merge-idea.cpp" download>下载 .cpp</a>
+    <button id="copy" type="button">复制</button></p>
+    <pre><code id="code">// 归并排序思路：先两两归并，再扩大归并段
+#include &lt;iostream&gt;
+using namespace std;
+
+void printArr(const int a[], int n) {
+    for (int i = 0; i &lt; n; i++) {
+        if (i) cout &lt;&lt; &quot; &quot;;
+        cout &lt;&lt; a[i];
+    }
+    cout &lt;&lt; &quot;\n&quot;;
+}
+
+void merge(int a[], int L, int M, int R, int tmp[]) {
+    int i = L, j = M + 1, k = L;
+    while (i &lt;= M &amp;&amp; j &lt;= R) {
+        if (a[i] &lt;= a[j]) tmp[k++] = a[i++];
+        else tmp[k++] = a[j++];
+    }
+    while (i &lt;= M) tmp[k++] = a[i++];
+    while (j &lt;= R) tmp[k++] = a[j++];
+    for (int t = L; t &lt;= R; t++) a[t] = tmp[t];
+}
+
+// 自底向上：先长度为 1 的两两归并
+void mergeSortBottomUp(int a[], int n) {
+    int* tmp = new int[n];
+    for (int width = 1; width &lt; n; width *= 2) {
+        for (int i = 0; i &lt; n; i += 2 * width) {
+            int mid = i + width - 1;
+            int right = i + 2 * width - 1;
+            if (mid &gt;= n - 1) break;
+            if (right &gt;= n) right = n - 1;
+            merge(a, i, mid, right, tmp);
+        }
+        printArr(a, n);
+    }
+    delete[] tmp;
+}
+
+int main() {
+    int a[] = {5, 2, 8, 1, 9, 3};
+    int n = 6;
+    printArr(a, n);
+    mergeSortBottomUp(a, n);
+    return 0;
+}
+</code></pre>
+  </section>
+  <nav class="pager"><a href="heap-code.html">上一节<br>堆排序代码(C/C++实现)</a><a href="merge-code.html">下一节<br>归并排序代码(C/C++递归实现)</a></nav>
+</main>
+<script>window.LESSON_ANIM={"kind":"bars","frames":[{"note":"初始：看成 6 个长度为 1 的有序段","vals":[5,2,8,1,9,3],"hl":[0,1,2,3,4,5]},{"note":"两两归并：5 与 2 → 2 5","vals":[2,5,8,1,9,3],"hl":[0,1]},{"note":"两两归并：8 与 1 → 1 8","vals":[2,5,1,8,9,3],"hl":[2,3]},{"note":"两两归并：9 与 3 → 3 9","vals":[2,5,1,8,3,9],"hl":[4,5]},{"note":"第一层完成：三段有序二元组","vals":[2,5,1,8,3,9],"hl":[],"done":[]},{"note":"再归并：2 5 与 1 8 → 1 2 5 8","vals":[1,2,5,8,3,9],"hl":[0,1,2,3]},{"note":"末段 3 9 已有序，本层结束","vals":[1,2,5,8,3,9],"hl":[4,5]},{"note":"最后归并两段成长串","vals":[1,2,3,5,8,9],"hl":[0,1,2,3,4,5],"done":[0,1,2,3,4,5]},{"note":"有序结果：1 2 3 5 8 9","vals":[1,2,3,5,8,9],"hl":[],"done":[0,1,2,3,4,5]}]};</script>
+<script src="../assets/js/anim.js"></script>
+</body>
+</html>

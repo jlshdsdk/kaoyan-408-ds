@@ -1,0 +1,78 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>简单选择排序代码(C/C++实现)</title>
+<link rel="stylesheet" href="../assets/css/site.css">
+<link rel="icon" href="data:,">
+</head>
+<body>
+<header class="top">
+  <a class="brand" href="../index.html">408 数据结构</a>
+  <span class="muted">58 / 67</span>
+</header>
+<main class="wrap lesson">
+  <p class="crumb">排序</p>
+  <h1>简单选择排序代码(C/C++实现)</h1>
+  <p>每趟找最小并交换，打印中间结果</p>
+  <div class="stage-wrap"><canvas id="stage" width="960" height="360"></canvas></div>
+  <p id="note"></p>
+  <div class="controls">
+    <button id="prev" type="button">上一步</button>
+    <button id="play" type="button">播放</button>
+    <button id="next" type="button">下一步</button>
+    <span id="step" class="muted"></span>
+    <span class="muted">方向键也可切换</span>
+  </div>
+  <section class="panel">
+    <h2>要点</h2>
+    <ul><li>外层 i 表示本趟要填的前端位置</li><li>内层从 i+1 扫到末尾更新最小下标 k</li><li>k 与 i 不同才交换，再打印本趟数组</li><li>不稳定，交换可能打乱相等元次序</li></ul>
+    <p class="muted">时间最好/最坏/平均 O(n^2)；空间 O(1)；不稳定</p>
+  </section>
+  <section class="panel">
+    <h2>完整 C++ 代码</h2>
+    <p><a href="../c/select-code.cpp" download>下载 .cpp</a>
+    <button id="copy" type="button">复制</button></p>
+    <pre><code id="code">// 简单选择排序代码：每趟打印
+#include &lt;iostream&gt;
+using namespace std;
+
+void printArr(const int a[], int n) {
+    for (int i = 0; i &lt; n; i++) {
+        if (i) cout &lt;&lt; &quot; &quot;;
+        cout &lt;&lt; a[i];
+    }
+    cout &lt;&lt; &quot;\n&quot;;
+}
+
+void selectSort(int a[], int n) {
+    for (int i = 0; i &lt; n - 1; i++) {
+        int k = i;
+        for (int j = i + 1; j &lt; n; j++) {
+            if (a[j] &lt; a[k]) k = j;
+        }
+        if (k != i) {
+            int t = a[i];
+            a[i] = a[k];
+            a[k] = t;
+        }
+        printArr(a, n);  // 每趟结束后打印
+    }
+}
+
+int main() {
+    int a[] = {5, 2, 8, 1, 9, 3};
+    int n = 6;
+    printArr(a, n);
+    selectSort(a, n);
+    return 0;
+}
+</code></pre>
+  </section>
+  <nav class="pager"><a href="select-idea.html">上一节<br>简单选择排序</a><a href="heap-idea.html">下一节<br>堆与堆排序</a></nav>
+</main>
+<script>window.LESSON_ANIM={"kind":"bars","frames":[{"note":"初始数组，开始第 1 趟","vals":[5,2,8,1,9,3],"hl":[0,1,2,3,4,5]},{"note":"选中最小 1，与 a[0] 交换","vals":[1,2,8,5,9,3],"hl":[0,3],"done":[0]},{"note":"第 2 趟：最小已是 2，无交换","vals":[1,2,8,5,9,3],"hl":[1],"done":[0,1]},{"note":"第 3 趟：3 与 8 交换","vals":[1,2,3,5,9,8],"hl":[2,5],"done":[0,1,2]},{"note":"第 4 趟：5 已就位","vals":[1,2,3,5,9,8],"hl":[3],"done":[0,1,2,3]},{"note":"第 5 趟：8 与 9 交换","vals":[1,2,3,5,8,9],"hl":[4,5],"done":[0,1,2,3,4]},{"note":"最后一元自动有序","vals":[1,2,3,5,8,9],"hl":[5],"done":[0,1,2,3,4,5]},{"note":"最终有序：1 2 3 5 8 9","vals":[1,2,3,5,8,9],"hl":[],"done":[0,1,2,3,4,5]}]};</script>
+<script src="../assets/js/anim.js"></script>
+</body>
+</html>

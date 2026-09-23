@@ -1,0 +1,81 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>冒泡排序</title>
+<link rel="stylesheet" href="../assets/css/site.css">
+<link rel="icon" href="data:,">
+</head>
+<body>
+<header class="top">
+  <a class="brand" href="../index.html">408 数据结构</a>
+  <span class="muted">52 / 67</span>
+</header>
+<main class="wrap lesson">
+  <p class="crumb">排序</p>
+  <h1>冒泡排序</h1>
+  <p>相邻比较交换，大的沉到末尾</p>
+  <div class="stage-wrap"><canvas id="stage" width="960" height="360"></canvas></div>
+  <p id="note"></p>
+  <div class="controls">
+    <button id="prev" type="button">上一步</button>
+    <button id="play" type="button">播放</button>
+    <button id="next" type="button">下一步</button>
+    <span id="step" class="muted"></span>
+    <span class="muted">方向键也可切换</span>
+  </div>
+  <section class="panel">
+    <h2>要点</h2>
+    <ul><li>一趟从左扫到右，相邻逆序就交换</li><li>每趟结束后，当前最大沉到无序区末尾</li><li>相等不交换，相对次序不变，故稳定</li><li>共需多趟，直到有序区扩满全表</li></ul>
+    <p class="muted">时间最好/最坏/平均均 O(n^2)（无提前结束）；空间 O(1)；稳定</p>
+  </section>
+  <section class="panel">
+    <h2>完整 C++ 代码</h2>
+    <p><a href="../c/bubble-idea.cpp" download>下载 .cpp</a>
+    <button id="copy" type="button">复制</button></p>
+    <pre><code id="code">// 冒泡排序：一趟把当前最大沉到末尾
+#include &lt;iostream&gt;
+using namespace std;
+
+void print_pass(const int a[], int n, int pass) {
+    cout &lt;&lt; &quot;pass &quot; &lt;&lt; pass &lt;&lt; &quot;:&quot;;
+    for (int i = 0; i &lt; n; i++) cout &lt;&lt; &quot; &quot; &lt;&lt; a[i];
+    cout &lt;&lt; &quot;\n&quot;;
+}
+
+void bubble_sort(int a[], int n) {
+    if (n &lt;= 0) {
+        cout &lt;&lt; &quot;error\n&quot;;
+        return;
+    }
+    print_pass(a, n, 0);
+    for (int i = 0; i &lt; n - 1; i++) {
+        for (int j = 0; j &lt; n - 1 - i; j++) {
+            if (a[j] &gt; a[j + 1]) {
+                int t = a[j];
+                a[j] = a[j + 1];
+                a[j + 1] = t;
+            }
+        }
+        print_pass(a, n, i + 1);
+    }
+}
+
+int main() {
+    int a[] = {5, 2, 8, 1, 9, 3};
+    int n = 6;
+    bubble_sort(a, n);
+    cout &lt;&lt; &quot;result:&quot;;
+    for (int i = 0; i &lt; n; i++) cout &lt;&lt; &quot; &quot; &lt;&lt; a[i];
+    cout &lt;&lt; &quot;\n&quot;;
+    return 0;
+}
+</code></pre>
+  </section>
+  <nav class="pager"><a href="shell-code.html">上一节<br>希尔排序代码(C/C++实现)</a><a href="bubble-code.html">下一节<br>冒泡排序及其改进代码(C/C++实现)</a></nav>
+</main>
+<script>window.LESSON_ANIM={"kind":"bars","frames":[{"note":"初始 5 2 8 1 9 3，准备冒泡","vals":[5,2,8,1,9,3],"hl":[]},{"note":"第1趟：5 与 2 交换","vals":[5,2,8,1,9,3],"hl":[0,1]},{"note":"继续扫：最大 9 沉到末尾","vals":[2,5,1,8,3,9],"hl":[4,5],"done":[5]},{"note":"第1趟后：2 5 1 8 3 9","vals":[2,5,1,8,3,9],"hl":[],"done":[5]},{"note":"第2趟：相邻交换，8 沉到次末","vals":[2,1,5,3,8,9],"hl":[3,4],"done":[4,5]},{"note":"第2趟后：2 1 5 3 8 9","vals":[2,1,5,3,8,9],"hl":[],"done":[4,5]},{"note":"第3趟：5 与 3 交换后沉位","vals":[1,2,3,5,8,9],"hl":[2,3],"done":[3,4,5]},{"note":"第3趟后：1 2 3 5 8 9","vals":[1,2,3,5,8,9],"hl":[],"done":[3,4,5]},{"note":"第4趟：已无交换，有序区扩大","vals":[1,2,3,5,8,9],"hl":[0,1],"done":[2,3,4,5]},{"note":"第5趟：最后确认前两元","vals":[1,2,3,5,8,9],"hl":[0,1],"done":[1,2,3,4,5]},{"note":"全部有序：1 2 3 5 8 9","vals":[1,2,3,5,8,9],"hl":[],"done":[0,1,2,3,4,5]},{"note":"稳定：相等元不会被交换越过","vals":[1,2,3,5,8,9],"hl":[],"done":[0,1,2,3,4,5]}]};</script>
+<script src="../assets/js/anim.js"></script>
+</body>
+</html>

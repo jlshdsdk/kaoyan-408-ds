@@ -1,0 +1,124 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>二叉树的遍历 - 前序，中序，后序，层序</title>
+<link rel="stylesheet" href="../assets/css/site.css">
+<link rel="icon" href="data:,">
+</head>
+<body>
+<header class="top">
+  <a class="brand" href="../index.html">408 数据结构</a>
+  <span class="muted">8 / 67</span>
+</header>
+<main class="wrap lesson">
+  <p class="crumb">树</p>
+  <h1>二叉树的遍历 - 前序，中序，后序，层序</h1>
+  <p>四种遍历的访问顺序对照</p>
+  <div class="stage-wrap"><canvas id="stage" width="960" height="360"></canvas></div>
+  <p id="note"></p>
+  <div class="controls">
+    <button id="prev" type="button">上一步</button>
+    <button id="play" type="button">播放</button>
+    <button id="next" type="button">下一步</button>
+    <span id="step" class="muted"></span>
+    <span class="muted">方向键也可切换</span>
+  </div>
+  <section class="panel">
+    <h2>要点</h2>
+    <ul><li>前序：根-左-右；本例输出 ABDECF</li><li>中序：左-根-右；本例输出 DBEAFC</li><li>后序：左-右-根；本例输出 DEBFCA</li><li>层序：队列逐层；本例输出 ABCDEF</li><li>前中可唯一还原；后中亦可，单序列不够</li></ul>
+    <p class="muted">四种皆时间 O(n)；递归栈 O(h)，层序队列最坏 O(n)</p>
+  </section>
+  <section class="panel">
+    <h2>完整 C++ 代码</h2>
+    <p><a href="../c/btree-trav.cpp" download>下载 .cpp</a>
+    <button id="copy" type="button">复制</button></p>
+    <pre><code id="code">// 二叉树遍历：前序、中序、后序、层序
+#include &lt;iostream&gt;
+#include &lt;queue&gt;
+using namespace std;
+
+struct Node {
+    char data;
+    Node *l, *r;
+    explicit Node(char c) : data(c), l(nullptr), r(nullptr) {}
+};
+
+void preorder(Node* t) {
+    if (!t) return;
+    cout &lt;&lt; t-&gt;data;
+    preorder(t-&gt;l);
+    preorder(t-&gt;r);
+}
+
+void inorder(Node* t) {
+    if (!t) return;
+    inorder(t-&gt;l);
+    cout &lt;&lt; t-&gt;data;
+    inorder(t-&gt;r);
+}
+
+void postorder(Node* t) {
+    if (!t) return;
+    postorder(t-&gt;l);
+    postorder(t-&gt;r);
+    cout &lt;&lt; t-&gt;data;
+}
+
+void levelorder(Node* t) {
+    if (!t) return;
+    queue&lt;Node*&gt; q;
+    q.push(t);
+    while (!q.empty()) {
+        Node* cur = q.front();
+        q.pop();
+        cout &lt;&lt; cur-&gt;data;
+        if (cur-&gt;l) q.push(cur-&gt;l);
+        if (cur-&gt;r) q.push(cur-&gt;r);
+    }
+}
+
+void free_tree(Node* t) {
+    if (!t) return;
+    free_tree(t-&gt;l);
+    free_tree(t-&gt;r);
+    delete t;
+}
+
+int main() {
+    // A(B(D,E),C(F))
+    Node* A = new Node(&#x27;A&#x27;);
+    Node* B = new Node(&#x27;B&#x27;);
+    Node* C = new Node(&#x27;C&#x27;);
+    Node* D = new Node(&#x27;D&#x27;);
+    Node* E = new Node(&#x27;E&#x27;);
+    Node* F = new Node(&#x27;F&#x27;);
+    A-&gt;l = B; A-&gt;r = C;
+    B-&gt;l = D; B-&gt;r = E;
+    C-&gt;l = F;
+
+    cout &lt;&lt; &quot;pre=&quot;;
+    preorder(A);
+    cout &lt;&lt; &quot;\n&quot;;
+    cout &lt;&lt; &quot;in=&quot;;
+    inorder(A);
+    cout &lt;&lt; &quot;\n&quot;;
+    cout &lt;&lt; &quot;post=&quot;;
+    postorder(A);
+    cout &lt;&lt; &quot;\n&quot;;
+    cout &lt;&lt; &quot;level=&quot;;
+    levelorder(A);
+    cout &lt;&lt; &quot;\n&quot;;
+
+    free_tree(A);
+    return 0;
+}
+</code></pre>
+  </section>
+  <nav class="pager"><a href="btree-store.html">上一节<br>二叉树的存储 - 顺序存储, 链式存储</a><a href="btree-build.html">下一节<br>二叉树的构造 - 由遍历序列构造二叉树</a></nav>
+</main>
+<script>window.LESSON_ANIM={"kind":"graph","frames":[{"note":"树 A(B(D,E),C(F))，开始四种遍历。","nodes":[{"id":"A","v":"A","x":0.5,"y":0.12},{"id":"B","v":"B","x":0.28,"y":0.42},{"id":"C","v":"C","x":0.72,"y":0.42},{"id":"D","v":"D","x":0.16,"y":0.78},{"id":"E","v":"E","x":0.4,"y":0.78},{"id":"F","v":"F","x":0.72,"y":0.78}],"edges":[{"u":"A","v":"B"},{"u":"A","v":"C"},{"u":"B","v":"D"},{"u":"B","v":"E"},{"u":"C","v":"F"}],"hl":[]},{"note":"前序：先根 A，再进左子树。","nodes":[{"id":"A","v":"A","x":0.5,"y":0.12},{"id":"B","v":"B","x":0.28,"y":0.42},{"id":"C","v":"C","x":0.72,"y":0.42},{"id":"D","v":"D","x":0.16,"y":0.78},{"id":"E","v":"E","x":0.4,"y":0.78},{"id":"F","v":"F","x":0.72,"y":0.78}],"edges":[{"u":"A","v":"B","hl":true},{"u":"A","v":"C"},{"u":"B","v":"D"},{"u":"B","v":"E"},{"u":"C","v":"F"}],"hl":["A"]},{"note":"前序继续：B→D→E，已得 ABDE。","nodes":[{"id":"A","v":"A","x":0.5,"y":0.12},{"id":"B","v":"B","x":0.28,"y":0.42},{"id":"C","v":"C","x":0.72,"y":0.42},{"id":"D","v":"D","x":0.16,"y":0.78},{"id":"E","v":"E","x":0.4,"y":0.78},{"id":"F","v":"F","x":0.72,"y":0.78}],"edges":[{"u":"A","v":"B"},{"u":"A","v":"C"},{"u":"B","v":"D","hl":true},{"u":"B","v":"E","hl":true},{"u":"C","v":"F"}],"hl":["A","B","D","E"]},{"note":"前序右子树 C→F，输出 ABDECF。","nodes":[{"id":"A","v":"A","x":0.5,"y":0.12},{"id":"B","v":"B","x":0.28,"y":0.42},{"id":"C","v":"C","x":0.72,"y":0.42},{"id":"D","v":"D","x":0.16,"y":0.78},{"id":"E","v":"E","x":0.4,"y":0.78},{"id":"F","v":"F","x":0.72,"y":0.78}],"edges":[{"u":"A","v":"B"},{"u":"A","v":"C","hl":true},{"u":"B","v":"D"},{"u":"B","v":"E"},{"u":"C","v":"F","hl":true}],"hl":["A","B","C","D","E","F"]},{"note":"中序：左到底，先访 D。","nodes":[{"id":"A","v":"A","x":0.5,"y":0.12},{"id":"B","v":"B","x":0.28,"y":0.42},{"id":"C","v":"C","x":0.72,"y":0.42},{"id":"D","v":"D","x":0.16,"y":0.78},{"id":"E","v":"E","x":0.4,"y":0.78},{"id":"F","v":"F","x":0.72,"y":0.78}],"edges":[{"u":"A","v":"B"},{"u":"A","v":"C"},{"u":"B","v":"D","hl":true},{"u":"B","v":"E"},{"u":"C","v":"F"}],"hl":["D"]},{"note":"中序：D→B→E，左子树走完。","nodes":[{"id":"A","v":"A","x":0.5,"y":0.12},{"id":"B","v":"B","x":0.28,"y":0.42},{"id":"C","v":"C","x":0.72,"y":0.42},{"id":"D","v":"D","x":0.16,"y":0.78},{"id":"E","v":"E","x":0.4,"y":0.78},{"id":"F","v":"F","x":0.72,"y":0.78}],"edges":[{"u":"A","v":"B"},{"u":"A","v":"C"},{"u":"B","v":"D"},{"u":"B","v":"E","hl":true},{"u":"C","v":"F"}],"hl":["D","B","E"]},{"note":"中序：根 A，再 F→C，输出 DBEAFC。","nodes":[{"id":"A","v":"A","x":0.5,"y":0.12},{"id":"B","v":"B","x":0.28,"y":0.42},{"id":"C","v":"C","x":0.72,"y":0.42},{"id":"D","v":"D","x":0.16,"y":0.78},{"id":"E","v":"E","x":0.4,"y":0.78},{"id":"F","v":"F","x":0.72,"y":0.78}],"edges":[{"u":"A","v":"B"},{"u":"A","v":"C","hl":true},{"u":"B","v":"D"},{"u":"B","v":"E"},{"u":"C","v":"F","hl":true}],"hl":["D","B","E","A","F","C"]},{"note":"后序：先左右叶子，D→E 再 B。","nodes":[{"id":"A","v":"A","x":0.5,"y":0.12},{"id":"B","v":"B","x":0.28,"y":0.42},{"id":"C","v":"C","x":0.72,"y":0.42},{"id":"D","v":"D","x":0.16,"y":0.78},{"id":"E","v":"E","x":0.4,"y":0.78},{"id":"F","v":"F","x":0.72,"y":0.78}],"edges":[{"u":"A","v":"B"},{"u":"A","v":"C"},{"u":"B","v":"D"},{"u":"B","v":"E"},{"u":"C","v":"F"}],"hl":["D","E","B"]},{"note":"后序：右子树 F→C，最后根 A。","nodes":[{"id":"A","v":"A","x":0.5,"y":0.12},{"id":"B","v":"B","x":0.28,"y":0.42},{"id":"C","v":"C","x":0.72,"y":0.42},{"id":"D","v":"D","x":0.16,"y":0.78},{"id":"E","v":"E","x":0.4,"y":0.78},{"id":"F","v":"F","x":0.72,"y":0.78}],"edges":[{"u":"A","v":"B"},{"u":"A","v":"C"},{"u":"B","v":"D"},{"u":"B","v":"E"},{"u":"C","v":"F"}],"hl":["D","E","B","F","C"]},{"note":"后序完成：DEBFCA（根最后）。","nodes":[{"id":"A","v":"A","x":0.5,"y":0.12},{"id":"B","v":"B","x":0.28,"y":0.42},{"id":"C","v":"C","x":0.72,"y":0.42},{"id":"D","v":"D","x":0.16,"y":0.78},{"id":"E","v":"E","x":0.4,"y":0.78},{"id":"F","v":"F","x":0.72,"y":0.78}],"edges":[{"u":"A","v":"B"},{"u":"A","v":"C"},{"u":"B","v":"D"},{"u":"B","v":"E"},{"u":"C","v":"F"}],"hl":["D","E","B","F","C","A"]},{"note":"层序：队列先出 A，再入 B C。","nodes":[{"id":"A","v":"A","x":0.5,"y":0.12},{"id":"B","v":"B","x":0.28,"y":0.42},{"id":"C","v":"C","x":0.72,"y":0.42},{"id":"D","v":"D","x":0.16,"y":0.78},{"id":"E","v":"E","x":0.4,"y":0.78},{"id":"F","v":"F","x":0.72,"y":0.78}],"edges":[{"u":"A","v":"B","hl":true},{"u":"A","v":"C","hl":true},{"u":"B","v":"D"},{"u":"B","v":"E"},{"u":"C","v":"F"}],"hl":["A"]},{"note":"层序：第二层 B C。","nodes":[{"id":"A","v":"A","x":0.5,"y":0.12},{"id":"B","v":"B","x":0.28,"y":0.42},{"id":"C","v":"C","x":0.72,"y":0.42},{"id":"D","v":"D","x":0.16,"y":0.78},{"id":"E","v":"E","x":0.4,"y":0.78},{"id":"F","v":"F","x":0.72,"y":0.78}],"edges":[{"u":"A","v":"B"},{"u":"A","v":"C"},{"u":"B","v":"D"},{"u":"B","v":"E"},{"u":"C","v":"F"}],"hl":["A","B","C"]},{"note":"层序：第三层 D E F，输出 ABCDEF。","nodes":[{"id":"A","v":"A","x":0.5,"y":0.12},{"id":"B","v":"B","x":0.28,"y":0.42},{"id":"C","v":"C","x":0.72,"y":0.42},{"id":"D","v":"D","x":0.16,"y":0.78},{"id":"E","v":"E","x":0.4,"y":0.78},{"id":"F","v":"F","x":0.72,"y":0.78}],"edges":[{"u":"A","v":"B"},{"u":"A","v":"C"},{"u":"B","v":"D"},{"u":"B","v":"E"},{"u":"C","v":"F"}],"hl":["A","B","C","D","E","F"]},{"note":"对照：前ABDECF 中DBEAFC 后DEBFCA 层ABCDEF。","nodes":[{"id":"A","v":"A","x":0.5,"y":0.12},{"id":"B","v":"B","x":0.28,"y":0.42},{"id":"C","v":"C","x":0.72,"y":0.42},{"id":"D","v":"D","x":0.16,"y":0.78},{"id":"E","v":"E","x":0.4,"y":0.78},{"id":"F","v":"F","x":0.72,"y":0.78}],"edges":[{"u":"A","v":"B"},{"u":"A","v":"C"},{"u":"B","v":"D"},{"u":"B","v":"E"},{"u":"C","v":"F"}],"hl":["A"]}]};</script>
+<script src="../assets/js/anim.js"></script>
+</body>
+</html>

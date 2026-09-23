@@ -1,0 +1,89 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>二叉树&amp;完全二叉树 - 定义, 性质</title>
+<link rel="stylesheet" href="../assets/css/site.css">
+<link rel="icon" href="data:,">
+</head>
+<body>
+<header class="top">
+  <a class="brand" href="../index.html">408 数据结构</a>
+  <span class="muted">6 / 67</span>
+</header>
+<main class="wrap lesson">
+  <p class="crumb">树</p>
+  <h1>二叉树&amp;完全二叉树 - 定义, 性质</h1>
+  <p>完全二叉树下标与层性质</p>
+  <div class="stage-wrap"><canvas id="stage" width="960" height="360"></canvas></div>
+  <p id="note"></p>
+  <div class="controls">
+    <button id="prev" type="button">上一步</button>
+    <button id="play" type="button">播放</button>
+    <button id="next" type="button">下一步</button>
+    <span id="step" class="muted"></span>
+    <span class="muted">方向键也可切换</span>
+  </div>
+  <section class="panel">
+    <h2>要点</h2>
+    <ul><li>二叉树每结点至多两孩子，且分左右</li><li>完全二叉树：从上到下、同层从左到右填满</li><li>下标从1起：父=i/2，左=2i，右=2i+1</li><li>叶子只出现在最后两层；满树叶子全在底层</li><li>n个结点高度约为floor(log2 n)</li></ul>
+    <p class="muted">下标换算 O(1)；建树/遍历仍是 O(n)</p>
+  </section>
+  <section class="panel">
+    <h2>完整 C++ 代码</h2>
+    <p><a href="../c/btree-def.cpp" download>下载 .cpp</a>
+    <button id="copy" type="button">复制</button></p>
+    <pre><code id="code">// 二叉树与完全二叉树 - 定义与性质（满的完全二叉树 1..7）
+#include &lt;iostream&gt;
+using namespace std;
+
+static const int N = 7;
+
+int parent(int i) { return i / 2; }
+int left(int i) { return 2 * i; }
+int right(int i) { return 2 * i + 1; }
+
+bool is_leaf(int i, int n) {
+    return left(i) &gt; n;
+}
+
+int main() {
+    // 1-based heap-like layout for complete binary tree 1..7
+    int a[N + 1];
+    for (int i = 1; i &lt;= N; i++) a[i] = i;
+
+    cout &lt;&lt; &quot;tree=&quot;;
+    for (int i = 1; i &lt;= N; i++) cout &lt;&lt; a[i];
+    cout &lt;&lt; &quot;\n&quot;;
+
+    for (int i = 1; i &lt;= N; i++) {
+        cout &lt;&lt; &quot;i=&quot; &lt;&lt; i;
+        if (i &gt; 1) cout &lt;&lt; &quot; parent=&quot; &lt;&lt; parent(i);
+        if (left(i) &lt;= N) cout &lt;&lt; &quot; L=&quot; &lt;&lt; left(i);
+        if (right(i) &lt;= N) cout &lt;&lt; &quot; R=&quot; &lt;&lt; right(i);
+        if (is_leaf(i, N)) cout &lt;&lt; &quot; leaf&quot;;
+        cout &lt;&lt; &quot;\n&quot;;
+    }
+
+    // leaves of complete tree of n nodes sit on last two levels
+    cout &lt;&lt; &quot;leaves=&quot;;
+    for (int i = 1; i &lt;= N; i++) {
+        if (is_leaf(i, N)) cout &lt;&lt; a[i];
+    }
+    cout &lt;&lt; &quot;\n&quot;;
+
+    // property: at most 2^k nodes on level k (root level 0)
+    cout &lt;&lt; &quot;level0=1 level1=2 level2=4 max\n&quot;;
+    // n nodes -&gt; height floor(log2 n)
+    cout &lt;&lt; &quot;height=&quot; &lt;&lt; 2 &lt;&lt; &quot; for n=&quot; &lt;&lt; N &lt;&lt; &quot;\n&quot;;
+    return 0;
+}
+</code></pre>
+  </section>
+  <nav class="pager"><a href="tree-def.html">上一节<br>树 - 定义, 术语, 性质</a><a href="btree-store.html">下一节<br>二叉树的存储 - 顺序存储, 链式存储</a></nav>
+</main>
+<script>window.LESSON_ANIM={"kind":"graph","frames":[{"note":"满的完全二叉树：结点编号 1..7。","nodes":[{"id":"1","v":"1","x":0.5,"y":0.12},{"id":"2","v":"2","x":0.28,"y":0.42},{"id":"3","v":"3","x":0.72,"y":0.42},{"id":"4","v":"4","x":0.16,"y":0.78},{"id":"5","v":"5","x":0.4,"y":0.78},{"id":"6","v":"6","x":0.6,"y":0.78},{"id":"7","v":"7","x":0.84,"y":0.78}],"edges":[{"u":"1","v":"2"},{"u":"1","v":"3"},{"u":"2","v":"4"},{"u":"2","v":"5"},{"u":"3","v":"6"},{"u":"3","v":"7"}],"hl":[]},{"note":"根是 1；第 0 层最多 1 个结点。","nodes":[{"id":"1","v":"1","x":0.5,"y":0.12},{"id":"2","v":"2","x":0.28,"y":0.42},{"id":"3","v":"3","x":0.72,"y":0.42},{"id":"4","v":"4","x":0.16,"y":0.78},{"id":"5","v":"5","x":0.4,"y":0.78},{"id":"6","v":"6","x":0.6,"y":0.78},{"id":"7","v":"7","x":0.84,"y":0.78}],"edges":[{"u":"1","v":"2"},{"u":"1","v":"3"},{"u":"2","v":"4"},{"u":"2","v":"5"},{"u":"3","v":"6"},{"u":"3","v":"7"}],"hl":["1"]},{"note":"看结点 2：父=1，左孩=4，右孩=5。","nodes":[{"id":"1","v":"1","x":0.5,"y":0.12},{"id":"2","v":"2","x":0.28,"y":0.42},{"id":"3","v":"3","x":0.72,"y":0.42},{"id":"4","v":"4","x":0.16,"y":0.78},{"id":"5","v":"5","x":0.4,"y":0.78},{"id":"6","v":"6","x":0.6,"y":0.78},{"id":"7","v":"7","x":0.84,"y":0.78}],"edges":[{"u":"1","v":"2","hl":true},{"u":"1","v":"3"},{"u":"2","v":"4","hl":true},{"u":"2","v":"5","hl":true},{"u":"3","v":"6"},{"u":"3","v":"7"}],"hl":["1","2","4","5"]},{"note":"结点 i：父 floor(i/2)，左 2i，右 2i+1。","nodes":[{"id":"1","v":"1","x":0.5,"y":0.12},{"id":"2","v":"2","x":0.28,"y":0.42},{"id":"3","v":"3","x":0.72,"y":0.42},{"id":"4","v":"4","x":0.16,"y":0.78},{"id":"5","v":"5","x":0.4,"y":0.78},{"id":"6","v":"6","x":0.6,"y":0.78},{"id":"7","v":"7","x":0.84,"y":0.78}],"edges":[{"u":"1","v":"2"},{"u":"1","v":"3","hl":true},{"u":"2","v":"4"},{"u":"2","v":"5"},{"u":"3","v":"6","hl":true},{"u":"3","v":"7","hl":true}],"hl":["1","3","6","7"]},{"note":"第 1 层：2、3，最多 2 个结点。","nodes":[{"id":"1","v":"1","x":0.5,"y":0.12},{"id":"2","v":"2","x":0.28,"y":0.42},{"id":"3","v":"3","x":0.72,"y":0.42},{"id":"4","v":"4","x":0.16,"y":0.78},{"id":"5","v":"5","x":0.4,"y":0.78},{"id":"6","v":"6","x":0.6,"y":0.78},{"id":"7","v":"7","x":0.84,"y":0.78}],"edges":[{"u":"1","v":"2"},{"u":"1","v":"3"},{"u":"2","v":"4"},{"u":"2","v":"5"},{"u":"3","v":"6"},{"u":"3","v":"7"}],"hl":["2","3"]},{"note":"第 2 层：4..7，最多 4 个；已填满。","nodes":[{"id":"1","v":"1","x":0.5,"y":0.12},{"id":"2","v":"2","x":0.28,"y":0.42},{"id":"3","v":"3","x":0.72,"y":0.42},{"id":"4","v":"4","x":0.16,"y":0.78},{"id":"5","v":"5","x":0.4,"y":0.78},{"id":"6","v":"6","x":0.6,"y":0.78},{"id":"7","v":"7","x":0.84,"y":0.78}],"edges":[{"u":"1","v":"2"},{"u":"1","v":"3"},{"u":"2","v":"4"},{"u":"2","v":"5"},{"u":"3","v":"6"},{"u":"3","v":"7"}],"hl":["4","5","6","7"]},{"note":"叶子：左孩下标 > n 的结点，即 4 5 6 7。","nodes":[{"id":"1","v":"1","x":0.5,"y":0.12},{"id":"2","v":"2","x":0.28,"y":0.42},{"id":"3","v":"3","x":0.72,"y":0.42},{"id":"4","v":"4","x":0.16,"y":0.78},{"id":"5","v":"5","x":0.4,"y":0.78},{"id":"6","v":"6","x":0.6,"y":0.78},{"id":"7","v":"7","x":0.84,"y":0.78}],"edges":[{"u":"1","v":"2"},{"u":"1","v":"3"},{"u":"2","v":"4"},{"u":"2","v":"5"},{"u":"3","v":"6"},{"u":"3","v":"7"}],"hl":["4","5","6","7"]},{"note":"完全树叶子只落在最后两层；满则全在底层。","nodes":[{"id":"1","v":"1","x":0.5,"y":0.12},{"id":"2","v":"2","x":0.28,"y":0.42},{"id":"3","v":"3","x":0.72,"y":0.42},{"id":"4","v":"4","x":0.16,"y":0.78},{"id":"5","v":"5","x":0.4,"y":0.78},{"id":"6","v":"6","x":0.6,"y":0.78},{"id":"7","v":"7","x":0.84,"y":0.78}],"edges":[{"u":"1","v":"2"},{"u":"1","v":"3"},{"u":"2","v":"4"},{"u":"2","v":"5"},{"u":"3","v":"6"},{"u":"3","v":"7"}],"hl":["4","5","6","7"]},{"note":"高度 floor(log2 7)=2，与层数一致。","nodes":[{"id":"1","v":"1","x":0.5,"y":0.12},{"id":"2","v":"2","x":0.28,"y":0.42},{"id":"3","v":"3","x":0.72,"y":0.42},{"id":"4","v":"4","x":0.16,"y":0.78},{"id":"5","v":"5","x":0.4,"y":0.78},{"id":"6","v":"6","x":0.6,"y":0.78},{"id":"7","v":"7","x":0.84,"y":0.78}],"edges":[{"u":"1","v":"2","hl":true},{"u":"1","v":"3"},{"u":"2","v":"4","hl":true},{"u":"2","v":"5"},{"u":"3","v":"6"},{"u":"3","v":"7"}],"hl":["1","2","4"]},{"note":"小结：左右有序 + 完全填法 + 下标父子式。","nodes":[{"id":"1","v":"1","x":0.5,"y":0.12},{"id":"2","v":"2","x":0.28,"y":0.42},{"id":"3","v":"3","x":0.72,"y":0.42},{"id":"4","v":"4","x":0.16,"y":0.78},{"id":"5","v":"5","x":0.4,"y":0.78},{"id":"6","v":"6","x":0.6,"y":0.78},{"id":"7","v":"7","x":0.84,"y":0.78}],"edges":[{"u":"1","v":"2"},{"u":"1","v":"3"},{"u":"2","v":"4"},{"u":"2","v":"5"},{"u":"3","v":"6"},{"u":"3","v":"7"}],"hl":["1"]}]};</script>
+<script src="../assets/js/anim.js"></script>
+</body>
+</html>

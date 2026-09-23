@@ -1,0 +1,70 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>图的存储-邻接矩阵</title>
+<link rel="stylesheet" href="../assets/css/site.css">
+<link rel="icon" href="data:,">
+</head>
+<body>
+<header class="top">
+  <a class="brand" href="../index.html">408 数据结构</a>
+  <span class="muted">17 / 67</span>
+</header>
+<main class="wrap lesson">
+  <p class="crumb">图</p>
+  <h1>图的存储-邻接矩阵</h1>
+  <p>邻接矩阵用二维表记边，查边只要看格子</p>
+  <div class="stage-wrap"><canvas id="stage" width="960" height="360"></canvas></div>
+  <p id="note"></p>
+  <div class="controls">
+    <button id="prev" type="button">上一步</button>
+    <button id="play" type="button">播放</button>
+    <button id="next" type="button">下一步</button>
+    <span id="step" class="muted"></span>
+    <span class="muted">方向键也可切换</span>
+  </div>
+  <section class="panel">
+    <h2>要点</h2>
+    <ul><li>g[i][j]=1 表示 i 到 j 有边，无向则对称</li><li>对角线常为 0，表示无自环</li><li>空间固定 O(n^2)，稠密图更划算</li><li>判边 O(1)，枚举邻居要扫一整行</li></ul>
+    <p class="muted">建图 O(n^2+m)；判边 O(1)；枚举邻接 O(n)；空间 O(n^2)</p>
+  </section>
+  <section class="panel">
+    <h2>完整 C++ 代码</h2>
+    <p><a href="../c/adj-matrix.cpp" download>下载 .cpp</a>
+    <button id="copy" type="button">复制</button></p>
+    <pre><code id="code">// 邻接矩阵存储无向图，打印 0/1 矩阵
+#include &lt;iostream&gt;
+using namespace std;
+
+const int N = 5;
+const char* name[N] = {&quot;A&quot;, &quot;B&quot;, &quot;C&quot;, &quot;D&quot;, &quot;E&quot;};
+
+int main() {
+    int g[N][N] = {};
+    // 无向边 AB BC AC CD DE，对称位置都置 1
+    int edges[][2] = {{0, 1}, {1, 2}, {0, 2}, {2, 3}, {3, 4}};
+    for (int i = 0; i &lt; 5; i++) {
+        int u = edges[i][0], v = edges[i][1];
+        g[u][v] = g[v][u] = 1;
+    }
+
+    cout &lt;&lt; &quot;  &quot;;
+    for (int j = 0; j &lt; N; j++) cout &lt;&lt; name[j] &lt;&lt; (j + 1 &lt; N ? &quot; &quot; : &quot;\n&quot;);
+    for (int i = 0; i &lt; N; i++) {
+        cout &lt;&lt; name[i] &lt;&lt; &quot; &quot;;
+        for (int j = 0; j &lt; N; j++) {
+            cout &lt;&lt; g[i][j] &lt;&lt; (j + 1 &lt; N ? &quot; &quot; : &quot;\n&quot;);
+        }
+    }
+    return 0;
+}
+</code></pre>
+  </section>
+  <nav class="pager"><a href="graph-def.html">上一节<br>图 - 定义, 术语, 性质</a><a href="adj-list.html">下一节<br>图的存储-邻接表/邻接表画法</a></nav>
+</main>
+<script>window.LESSON_ANIM={"kind":"matrix","frames":[{"note":"先全 0：五个顶点，尚无任何边","rows":[["0","0","0","0","0"],["0","0","0","0","0"],["0","0","0","0","0"],["0","0","0","0","0"],["0","0","0","0","0"]],"hl":[],"colHead":["A","B","C","D","E"],"rowHead":["A","B","C","D","E"]},{"note":"写入 AB：对称格子 g[A][B]、g[B][A] 变 1","rows":[["0","1","0","0","0"],["1","0","0","0","0"],["0","0","0","0","0"],["0","0","0","0","0"],["0","0","0","0","0"]],"hl":[[0,1],[1,0]],"colHead":["A","B","C","D","E"],"rowHead":["A","B","C","D","E"]},{"note":"写入 BC：B 行与 C 行对应位置置 1","rows":[["0","1","0","0","0"],["1","0","1","0","0"],["0","1","0","0","0"],["0","0","0","0","0"],["0","0","0","0","0"]],"hl":[[1,2],[2,1]],"colHead":["A","B","C","D","E"],"rowHead":["A","B","C","D","E"]},{"note":"写入 AC：三角 A-B-C 在矩阵里闭合","rows":[["0","1","1","0","0"],["1","0","1","0","0"],["1","1","0","0","0"],["0","0","0","0","0"],["0","0","0","0","0"]],"hl":[[0,2],[2,0]],"colHead":["A","B","C","D","E"],"rowHead":["A","B","C","D","E"]},{"note":"写入 CD：C、D 互相连通","rows":[["0","1","1","0","0"],["1","0","1","0","0"],["1","1","0","1","0"],["0","0","1","0","0"],["0","0","0","0","0"]],"hl":[[2,3],[3,2]],"colHead":["A","B","C","D","E"],"rowHead":["A","B","C","D","E"]},{"note":"写入 DE：矩阵填完，对角线仍为 0","rows":[["0","1","1","0","0"],["1","0","1","0","0"],["1","1","0","1","0"],["0","0","1","0","1"],["0","0","0","1","0"]],"hl":[[3,4],[4,3]],"colHead":["A","B","C","D","E"],"rowHead":["A","B","C","D","E"]},{"note":"看 A 行：对 B、C 为 1，故 A 邻接 B、C","rows":[["0","1","1","0","0"],["1","0","1","0","0"],["1","1","0","1","0"],["0","0","1","0","1"],["0","0","0","1","0"]],"hl":[[0,1],[0,2]],"colHead":["A","B","C","D","E"],"rowHead":["A","B","C","D","E"]},{"note":"看 C 行：对 A、B、D 为 1，deg(C)=3","rows":[["0","1","1","0","0"],["1","0","1","0","0"],["1","1","0","1","0"],["0","0","1","0","1"],["0","0","0","1","0"]],"hl":[[2,0],[2,1],[2,3]],"colHead":["A","B","C","D","E"],"rowHead":["A","B","C","D","E"]},{"note":"无向图矩阵对称：转置后应与原矩阵相同","rows":[["0","1","1","0","0"],["1","0","1","0","0"],["1","1","0","1","0"],["0","0","1","0","1"],["0","0","0","1","0"]],"hl":[[0,1],[1,0],[3,4],[4,3]],"colHead":["A","B","C","D","E"],"rowHead":["A","B","C","D","E"]},{"note":"最终 5×5 邻接矩阵，与 main 中 g 一致","rows":[["0","1","1","0","0"],["1","0","1","0","0"],["1","1","0","1","0"],["0","0","1","0","1"],["0","0","0","1","0"]],"hl":[],"colHead":["A","B","C","D","E"],"rowHead":["A","B","C","D","E"]}]};</script>
+<script src="../assets/js/anim.js"></script>
+</body>
+</html>

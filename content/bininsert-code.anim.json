@@ -1,0 +1,17 @@
+{
+  "kind": "bars",
+  "frames": [
+    {"note": "init: 5 2 8 1 9 3", "vals": [5, 2, 8, 1, 9, 3], "hl": []},
+    {"note": "pass1 low=0 high=0 mid=0，key=2", "vals": [5, 2, 8, 1, 9, 3], "hl": [0], "pivot": 0},
+    {"note": "after pass1: 2 5 8 1 9 3", "vals": [2, 5, 8, 1, 9, 3], "hl": [0], "done": [0, 1]},
+    {"note": "pass2 mid=0 再 mid=1，key=8", "vals": [2, 5, 8, 1, 9, 3], "hl": [1], "pivot": 1, "done": [0, 1]},
+    {"note": "after pass2: 2 5 8 1 9 3", "vals": [2, 5, 8, 1, 9, 3], "hl": [], "done": [0, 1, 2]},
+    {"note": "pass3 mid=1 再 mid=0，key=1", "vals": [2, 5, 8, 1, 9, 3], "hl": [0], "pivot": 0, "done": [0, 1, 2]},
+    {"note": "after pass3: 1 2 5 8 9 3", "vals": [1, 2, 5, 8, 9, 3], "hl": [0], "done": [0, 1, 2, 3]},
+    {"note": "pass4 折半，key=9 插到末尾", "vals": [1, 2, 5, 8, 9, 3], "hl": [2], "pivot": 2, "done": [0, 1, 2, 3]},
+    {"note": "after pass4: 1 2 5 8 9 3", "vals": [1, 2, 5, 8, 9, 3], "hl": [], "done": [0, 1, 2, 3, 4]},
+    {"note": "pass5 mid 折半找 3 的位置", "vals": [1, 2, 5, 8, 9, 3], "hl": [2], "pivot": 2, "done": [0, 1, 2, 3, 4]},
+    {"note": "after pass5: 1 2 3 5 8 9", "vals": [1, 2, 3, 5, 8, 9], "hl": [2], "done": [0, 1, 2, 3, 4, 5]},
+    {"note": "result: 1 2 3 5 8 9", "vals": [1, 2, 3, 5, 8, 9], "hl": [], "done": [0, 1, 2, 3, 4, 5]}
+  ]
+}

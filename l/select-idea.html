@@ -1,0 +1,78 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>简单选择排序</title>
+<link rel="stylesheet" href="../assets/css/site.css">
+<link rel="icon" href="data:,">
+</head>
+<body>
+<header class="top">
+  <a class="brand" href="../index.html">408 数据结构</a>
+  <span class="muted">57 / 67</span>
+</header>
+<main class="wrap lesson">
+  <p class="crumb">排序</p>
+  <h1>简单选择排序</h1>
+  <p>每趟从未排序段选出最小元换到前端</p>
+  <div class="stage-wrap"><canvas id="stage" width="960" height="360"></canvas></div>
+  <p id="note"></p>
+  <div class="controls">
+    <button id="prev" type="button">上一步</button>
+    <button id="play" type="button">播放</button>
+    <button id="next" type="button">下一步</button>
+    <span id="step" class="muted"></span>
+    <span class="muted">方向键也可切换</span>
+  </div>
+  <section class="panel">
+    <h2>要点</h2>
+    <ul><li>第 i 趟在 a[i..n-1] 中找最小值下标</li><li>与 a[i] 交换后，前 i+1 个已就位</li><li>比较次数固定，与初始顺序关系不大</li><li>不稳定：相等元可能因交换改变相对次序</li></ul>
+    <p class="muted">时间最好/最坏/平均均 O(n^2)；空间 O(1)；不稳定</p>
+  </section>
+  <section class="panel">
+    <h2>完整 C++ 代码</h2>
+    <p><a href="../c/select-idea.cpp" download>下载 .cpp</a>
+    <button id="copy" type="button">复制</button></p>
+    <pre><code id="code">// 简单选择排序思路：每趟选最小元换到前面
+#include &lt;iostream&gt;
+using namespace std;
+
+void printArr(const int a[], int n) {
+    for (int i = 0; i &lt; n; i++) {
+        if (i) cout &lt;&lt; &quot; &quot;;
+        cout &lt;&lt; a[i];
+    }
+    cout &lt;&lt; &quot;\n&quot;;
+}
+
+void selectSort(int a[], int n) {
+    for (int i = 0; i &lt; n - 1; i++) {
+        int k = i;
+        for (int j = i + 1; j &lt; n; j++) {
+            if (a[j] &lt; a[k]) k = j;
+        }
+        if (k != i) {
+            int t = a[i];
+            a[i] = a[k];
+            a[k] = t;
+        }
+    }
+}
+
+int main() {
+    int a[] = {5, 2, 8, 1, 9, 3};
+    int n = 6;
+    printArr(a, n);
+    selectSort(a, n);
+    printArr(a, n);
+    return 0;
+}
+</code></pre>
+  </section>
+  <nav class="pager"><a href="quick-code.html">上一节<br>快速排序代码(C/C++实现)</a><a href="select-code.html">下一节<br>简单选择排序代码(C/C++实现)</a></nav>
+</main>
+<script>window.LESSON_ANIM={"kind":"bars","frames":[{"note":"初始：未排序段为整段","vals":[5,2,8,1,9,3],"hl":[0,1,2,3,4,5]},{"note":"第 1 趟：扫到最小 1 在下标 3","vals":[5,2,8,1,9,3],"hl":[3]},{"note":"1 与前端 5 交换，1 归位","vals":[1,2,8,5,9,3],"hl":[0],"done":[0]},{"note":"第 2 趟：最小 2 已在下标 1","vals":[1,2,8,5,9,3],"hl":[1],"done":[0]},{"note":"无需交换，2 归位","vals":[1,2,8,5,9,3],"hl":[1],"done":[0,1]},{"note":"第 3 趟：最小 3 与 8 交换","vals":[1,2,3,5,9,8],"hl":[2],"done":[0,1,2]},{"note":"第 4 趟：5 已就位","vals":[1,2,3,5,9,8],"hl":[3],"done":[0,1,2,3]},{"note":"第 5 趟：8 与 9 交换后有序","vals":[1,2,3,5,8,9],"hl":[4],"done":[0,1,2,3,4,5]},{"note":"全部有序：1 2 3 5 8 9","vals":[1,2,3,5,8,9],"hl":[],"done":[0,1,2,3,4,5]}]};</script>
+<script src="../assets/js/anim.js"></script>
+</body>
+</html>

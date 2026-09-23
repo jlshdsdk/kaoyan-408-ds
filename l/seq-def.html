@@ -1,0 +1,120 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>线性表 - 顺序表(上) - 定义, 创建, 查找</title>
+<link rel="stylesheet" href="../assets/css/site.css">
+<link rel="icon" href="data:,">
+</head>
+<body>
+<header class="top">
+  <a class="brand" href="../index.html">408 数据结构</a>
+  <span class="muted">1 / 67</span>
+</header>
+<main class="wrap lesson">
+  <p class="crumb">线性表</p>
+  <h1>线性表 - 顺序表(上) - 定义, 创建, 查找</h1>
+  <p>顺序表用连续数组存元素，下标即位置</p>
+  <div class="stage-wrap"><canvas id="stage" width="960" height="360"></canvas></div>
+  <p id="note"></p>
+  <div class="controls">
+    <button id="prev" type="button">上一步</button>
+    <button id="play" type="button">播放</button>
+    <button id="next" type="button">下一步</button>
+    <span id="step" class="muted"></span>
+    <span class="muted">方向键也可切换</span>
+  </div>
+  <section class="panel">
+    <h2>要点</h2>
+    <ul><li>顺序表逻辑相邻也物理相邻，靠下标定位</li><li>创建时把初值依次写入 data[0..n-1]</li><li>按下标访问是 O(1)，直接读 data[i]</li><li>按值查找最坏扫全表，平均约 n/2 次比较</li></ul>
+    <p class="muted">访问最好/最坏/平均 O(1)；按值查找最好 O(1)、最坏/平均 O(n)；空间 O(n)</p>
+  </section>
+  <section class="panel">
+    <h2>完整 C++ 代码</h2>
+    <p><a href="../c/seq-def.cpp" download>下载 .cpp</a>
+    <button id="copy" type="button">复制</button></p>
+    <pre><code id="code">// 顺序表：定义、创建、按下标访问、按值查找
+#include &lt;iostream&gt;
+using namespace std;
+
+const int MAXN = 64;
+
+struct SeqList {
+    int data[MAXN];
+    int length;
+};
+
+void init(SeqList&amp; L) {
+    L.length = 0;
+}
+
+// 用给定数组创建顺序表
+bool create(SeqList&amp; L, const int a[], int n) {
+    if (n &lt; 0 || n &gt; MAXN) {
+        cout &lt;&lt; &quot;error\n&quot;;
+        return false;
+    }
+    for (int i = 0; i &lt; n; i++) L.data[i] = a[i];
+    L.length = n;
+    return true;
+}
+
+// 按下标访问，合法下标返回 true
+bool get(const SeqList&amp; L, int i, int&amp; out) {
+    if (i &lt; 0 || i &gt;= L.length) {
+        cout &lt;&lt; &quot;error\n&quot;;
+        return false;
+    }
+    out = L.data[i];
+    return true;
+}
+
+// 按值查找，返回首次出现的下标；找不到返回 -1
+int find(const SeqList&amp; L, int x) {
+    for (int i = 0; i &lt; L.length; i++) {
+        if (L.data[i] == x) return i;
+    }
+    return -1;
+}
+
+void print(const SeqList&amp; L) {
+    cout &lt;&lt; &quot;[&quot;;
+    for (int i = 0; i &lt; L.length; i++) {
+        if (i) cout &lt;&lt; &quot;,&quot;;
+        cout &lt;&lt; L.data[i];
+    }
+    cout &lt;&lt; &quot;]\n&quot;;
+}
+
+int main() {
+    SeqList L;
+    init(L);
+    int a[] = {12, 7, 9, 4};
+    create(L, a, 4);
+    print(L);
+
+    int v = 0;
+    // 按下标访问：看下标 2
+    if (get(L, 2, v)) cout &lt;&lt; &quot;get(2)=&quot; &lt;&lt; v &lt;&lt; &quot;\n&quot;;
+
+    // 按值查找 9
+    int pos = find(L, 9);
+    if (pos &gt;= 0) cout &lt;&lt; &quot;find(9)=&quot; &lt;&lt; pos &lt;&lt; &quot;\n&quot;;
+    else cout &lt;&lt; &quot;error\n&quot;;
+
+    // 空表与找不到
+    SeqList E;
+    init(E);
+    if (!get(E, 0, v)) { /* empty */ }
+    if (find(L, 99) &lt; 0) cout &lt;&lt; &quot;find(99)=-1\n&quot;;
+    return 0;
+}
+</code></pre>
+  </section>
+  <nav class="pager"><span></span><a href="seq-edit.html">下一节<br>线性表 - 顺序表(下) - 插入, 删除</a></nav>
+</main>
+<script>window.LESSON_ANIM={"kind":"array","frames":[{"note":"空表 length=0，还没有元素","cells":[],"hl":[]},{"note":"写入 data[0]=12","cells":["12"],"hl":[0]},{"note":"写入 data[1]=7","cells":["12","7"],"hl":[1]},{"note":"写入 data[2]=9","cells":["12","7","9"],"hl":[2]},{"note":"写入 data[3]=4，创建完成","cells":["12","7","9","4"],"hl":[3]},{"note":"按下标访问：直接看下标 2","cells":["12","7","9","4"],"hl":[2]},{"note":"得到 9，随机访问一步到位","cells":["12","7","9","4"],"hl":[2],"done":[2]},{"note":"按值找 9：从下标 0 起扫","cells":["12","7","9","4"],"hl":[0]},{"note":"12≠9，继续看下标 1","cells":["12","7","9","4"],"hl":[1]},{"note":"7≠9，继续看下标 2","cells":["12","7","9","4"],"hl":[2]},{"note":"命中：data[2]=9，返回下标 2","cells":["12","7","9","4"],"hl":[2],"done":[2]}]};</script>
+<script src="../assets/js/anim.js"></script>
+</body>
+</html>

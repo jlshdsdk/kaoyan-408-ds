@@ -1,0 +1,117 @@
+:root {
+  --bg: #f3f5f8;
+  --card: #fff;
+  --ink: #0f172a;
+  --muted: #64748b;
+  --line: #e2e8f0;
+  --brand: #1d4ed8;
+  --brand-soft: #dbeafe;
+  --max: 980px;
+}
+* { box-sizing: border-box; }
+html { scroll-behavior: smooth; }
+body {
+  margin: 0;
+  font: 16px/1.6 system-ui, "Segoe UI", "PingFang SC", "Microsoft YaHei", sans-serif;
+  color: var(--ink);
+  background: var(--bg);
+}
+a { color: var(--brand); text-decoration: none; }
+a:hover { text-decoration: underline; }
+.top, .wrap { width: min(var(--max), calc(100% - 32px)); margin: 0 auto; }
+.top {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 18px 0 8px;
+}
+.brand { font-weight: 700; color: var(--ink); font-size: 18px; }
+.tabs {
+  display: flex;
+  gap: 8px;
+  flex-wrap: wrap;
+  padding: 8px 0 18px;
+}
+.tabs a, .btn, button {
+  border: 1px solid var(--line);
+  background: var(--card);
+  color: var(--ink);
+  border-radius: 999px;
+  padding: 6px 14px;
+  font: inherit;
+  cursor: pointer;
+}
+.tabs a:hover, button:hover { border-color: var(--brand); text-decoration: none; }
+section.block { margin: 0 0 22px; }
+section.block h2 { margin: 0 0 10px; font-size: 20px; }
+.list { display: grid; gap: 8px; }
+.card {
+  display: grid;
+  grid-template-columns: 72px 1fr;
+  gap: 12px;
+  align-items: center;
+  background: var(--card);
+  border: 1px solid var(--line);
+  border-radius: 12px;
+  padding: 10px 12px;
+  color: inherit;
+}
+.card:hover { border-color: #93c5fd; text-decoration: none; }
+.badge {
+  height: 48px;
+  border-radius: 8px;
+  background: #0f172a;
+  color: #e2e8f0;
+  display: grid;
+  place-items: center;
+  font-size: 12px;
+  text-align: center;
+  padding: 4px;
+}
+.card b { display: block; font-weight: 650; }
+.card span { color: var(--muted); font-size: 13px; }
+.find {
+  width: 100%;
+  border: 1px solid var(--line);
+  border-radius: 10px;
+  padding: 10px 12px;
+  font: inherit;
+  margin-bottom: 14px;
+}
+.lesson h1 { font-size: 26px; line-height: 1.35; margin: 8px 0; }
+.crumb, .muted { color: var(--muted); }
+.stage-wrap {
+  background: #0f172a;
+  border-radius: 12px;
+  overflow: hidden;
+}
+canvas#stage { width: 100%; height: 360px; display: block; }
+.controls { display: flex; gap: 8px; align-items: center; margin: 10px 0; flex-wrap: wrap; }
+#note { min-height: 3em; margin: 8px 0 0; }
+.panel {
+  background: var(--card);
+  border: 1px solid var(--line);
+  border-radius: 12px;
+  padding: 14px 16px;
+  margin: 14px 0;
+}
+pre {
+  margin: 0;
+  padding: 14px;
+  overflow: auto;
+  background: #0f172a;
+  color: #e2e8f0;
+  border-radius: 12px;
+  font: 13.5px/1.55 ui-monospace, Consolas, "Sarasa Mono SC", monospace;
+  max-height: 70vh;
+}
+.kw { color: #7dd3fc; }
+.cm { color: #94a3b8; }
+.st { color: #86efac; }
+.pager { display: flex; justify-content: space-between; gap: 12px; margin: 18px 0 32px; }
+.pager a { flex: 1; background: var(--card); border: 1px solid var(--line); border-radius: 10px; padding: 10px 12px; color: inherit; }
+.hidden { display: none; }
+@media (max-width: 640px) {
+  canvas#stage { height: 280px; }
+  .card { grid-template-columns: 56px 1fr; }
+}

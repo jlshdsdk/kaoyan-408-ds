@@ -1,0 +1,141 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>线性表 - 顺序表(下) - 插入, 删除</title>
+<link rel="stylesheet" href="../assets/css/site.css">
+<link rel="icon" href="data:,">
+</head>
+<body>
+<header class="top">
+  <a class="brand" href="../index.html">408 数据结构</a>
+  <span class="muted">2 / 67</span>
+</header>
+<main class="wrap lesson">
+  <p class="crumb">线性表</p>
+  <h1>线性表 - 顺序表(下) - 插入, 删除</h1>
+  <p>插入删除要搬元素，平均约搬一半表</p>
+  <div class="stage-wrap"><canvas id="stage" width="960" height="360"></canvas></div>
+  <p id="note"></p>
+  <div class="controls">
+    <button id="prev" type="button">上一步</button>
+    <button id="play" type="button">播放</button>
+    <button id="next" type="button">下一步</button>
+    <span id="step" class="muted"></span>
+    <span class="muted">方向键也可切换</span>
+  </div>
+  <section class="panel">
+    <h2>要点</h2>
+    <ul><li>插入前先把尾部元素整体后移腾空位</li><li>删除后把后面元素前移，补上缺口</li><li>表尾插删不用搬元素，代价最小</li><li>容量满时插入失败，需扩容或报错</li></ul>
+    <p class="muted">插入/删除最好 O(1)（表尾）、最坏/平均 O(n)；空间 O(n)</p>
+  </section>
+  <section class="panel">
+    <h2>完整 C++ 代码</h2>
+    <p><a href="../c/seq-edit.cpp" download>下载 .cpp</a>
+    <button id="copy" type="button">复制</button></p>
+    <pre><code id="code">// 顺序表：插入、删除
+#include &lt;iostream&gt;
+using namespace std;
+
+const int MAXN = 64;
+
+struct SeqList {
+    int data[MAXN];
+    int length;
+};
+
+void init(SeqList&amp; L) { L.length = 0; }
+
+bool create(SeqList&amp; L, const int a[], int n) {
+    if (n &lt; 0 || n &gt; MAXN) {
+        cout &lt;&lt; &quot;error\n&quot;;
+        return false;
+    }
+    for (int i = 0; i &lt; n; i++) L.data[i] = a[i];
+    L.length = n;
+    return true;
+}
+
+// 在下标 i 处插入 x（0&lt;=i&lt;=length）
+bool insertAt(SeqList&amp; L, int i, int x) {
+    if (i &lt; 0 || i &gt; L.length || L.length &gt;= MAXN) {
+        cout &lt;&lt; &quot;error\n&quot;;
+        return false;
+    }
+    for (int j = L.length; j &gt; i; j--) L.data[j] = L.data[j - 1];
+    L.data[i] = x;
+    L.length++;
+    return true;
+}
+
+// 删除下标 i 处元素
+bool eraseAt(SeqList&amp; L, int i) {
+    if (i &lt; 0 || i &gt;= L.length) {
+        cout &lt;&lt; &quot;error\n&quot;;
+        return false;
+    }
+    for (int j = i; j &lt; L.length - 1; j++) L.data[j] = L.data[j + 1];
+    L.length--;
+    return true;
+}
+
+// 按值删除首次出现的 x
+bool eraseValue(SeqList&amp; L, int x) {
+    int i = -1;
+    for (int k = 0; k &lt; L.length; k++) {
+        if (L.data[k] == x) {
+            i = k;
+            break;
+        }
+    }
+    if (i &lt; 0) {
+        cout &lt;&lt; &quot;error\n&quot;;
+        return false;
+    }
+    return eraseAt(L, i);
+}
+
+void print(const SeqList&amp; L) {
+    cout &lt;&lt; &quot;[&quot;;
+    for (int i = 0; i &lt; L.length; i++) {
+        if (i) cout &lt;&lt; &quot;,&quot;;
+        cout &lt;&lt; L.data[i];
+    }
+    cout &lt;&lt; &quot;]\n&quot;;
+}
+
+int main() {
+    SeqList L;
+    init(L);
+    int a[] = {12, 7, 9, 4};
+    create(L, a, 4);
+    print(L);
+
+    // 在下标 1 插入 5 -&gt; [12,5,7,9,4]
+    if (insertAt(L, 1, 5)) {
+        cout &lt;&lt; &quot;insert 5 at 1: &quot;;
+        print(L);
+    }
+
+    // 删除值 9 -&gt; [12,5,7,4]
+    if (eraseValue(L, 9)) {
+        cout &lt;&lt; &quot;erase 9: &quot;;
+        print(L);
+    }
+
+    // 越界与空删
+    if (!insertAt(L, 99, 1)) { /* error */ }
+    SeqList E;
+    init(E);
+    if (!eraseValue(E, 1)) { /* empty */ }
+    return 0;
+}
+</code></pre>
+  </section>
+  <nav class="pager"><a href="seq-def.html">上一节<br>线性表 - 顺序表(上) - 定义, 创建, 查找</a><a href="slist-create.html">下一节<br>线性表 - 单链表(上) - 定义, 创建(头插法, 尾插法)</a></nav>
+</main>
+<script>window.LESSON_ANIM={"kind":"array","frames":[{"note":"起始表：[12,7,9,4]","cells":["12","7","9","4"],"hl":[]},{"note":"要在下标 1 插入 5，先腾空位","cells":["12","7","9","4"],"hl":[1]},{"note":"4 后移到下标 4","cells":["12","7","9","4","4"],"hl":[4]},{"note":"9 后移到下标 3","cells":["12","7","9","9","4"],"hl":[3]},{"note":"7 后移到下标 2","cells":["12","7","7","9","4"],"hl":[2]},{"note":"空出的下标 1 写入 5","cells":["12","5","7","9","4"],"hl":[1],"done":[1]},{"note":"插入完成：[12,5,7,9,4]","cells":["12","5","7","9","4"],"hl":[]},{"note":"按值删 9：先扫到下标 3","cells":["12","5","7","9","4"],"hl":[3]},{"note":"4 前移填掉缺口","cells":["12","5","7","4","4"],"hl":[3]},{"note":"缩短 length，得到 [12,5,7,4]","cells":["12","5","7","4"],"hl":[],"done":[0,1,2,3]}]};</script>
+<script src="../assets/js/anim.js"></script>
+</body>
+</html>

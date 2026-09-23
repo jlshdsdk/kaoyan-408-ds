@@ -1,0 +1,113 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>顺序查找和平均查找长度ASL</title>
+<link rel="stylesheet" href="../assets/css/site.css">
+<link rel="icon" href="data:,">
+</head>
+<body>
+<header class="top">
+  <a class="brand" href="../index.html">408 数据结构</a>
+  <span class="muted">32 / 67</span>
+</header>
+<main class="wrap lesson">
+  <p class="crumb">查找</p>
+  <h1>顺序查找和平均查找长度ASL</h1>
+  <p>从前往后逐个比，顺带算 ASL</p>
+  <div class="stage-wrap"><canvas id="stage" width="960" height="360"></canvas></div>
+  <p id="note"></p>
+  <div class="controls">
+    <button id="prev" type="button">上一步</button>
+    <button id="play" type="button">播放</button>
+    <button id="next" type="button">下一步</button>
+    <span id="step" class="muted"></span>
+    <span class="muted">方向键也可切换</span>
+  </div>
+  <section class="panel">
+    <h2>要点</h2>
+    <ul><li>成功时比较次数等于元素所在位置序号</li><li>等概率成功ASL=(1+2+3+4+5+6)/6=3.5</li><li>无序失败总要扫完，失败ASL比较次数为n=6</li><li>哨兵把判空挪到循环外，失败时比较约n次</li></ul>
+    <p class="muted">成功最好O(1)、最坏/平均O(n)；失败O(n)；空间O(1)，哨兵多一个单元</p>
+  </section>
+  <section class="panel">
+    <h2>完整 C++ 代码</h2>
+    <p><a href="../c/seq-search.cpp" download>下载 .cpp</a>
+    <button id="copy" type="button">复制</button></p>
+    <pre><code id="code">// 顺序查找与平均查找长度 ASL；含哨兵写法
+#include &lt;iostream&gt;
+using namespace std;
+
+const int MAXN = 64;
+
+// 普通顺序查找：从左到右，返回下标；找不到返回 -1
+int seqSearch(const int a[], int n, int key, int&amp; cmp) {
+    cmp = 0;
+    if (n &lt;= 0) return -1;
+    for (int i = 0; i &lt; n; i++) {
+        cmp++;
+        if (a[i] == key) return i;
+    }
+    return -1;
+}
+
+// 哨兵顺序查找：a[0] 作哨兵，元素在 a[1..n]
+int seqSearchSentinel(int a[], int n, int key, int&amp; cmp) {
+    cmp = 0;
+    if (n &lt; 0) return 0;
+    a[0] = key;
+    int i = n;
+    while (a[i] != key) {
+        cmp++;
+        i--;
+    }
+    // 最后一次相等比较也算一次
+    cmp++;
+    return i;  // i==0 表示失败
+}
+
+// 等概率成功 ASL = (1+2+...+n)/n
+double aslSuccess(int n) {
+    if (n &lt;= 0) return 0;
+    int sum = 0;
+    for (int i = 1; i &lt;= n; i++) sum += i;
+    return (double)sum / n;
+}
+
+int main() {
+    // 演示表：下标 0..5 对应 4 7 2 9 1 6
+    int a[] = {4, 7, 2, 9, 1, 6};
+    int n = 6;
+
+    int cmp = 0;
+    int p = seqSearch(a, n, 9, cmp);
+    cout &lt;&lt; &quot;search(9) index=&quot; &lt;&lt; p &lt;&lt; &quot; cmp=&quot; &lt;&lt; cmp &lt;&lt; &quot;\n&quot;;
+
+    p = seqSearch(a, n, 5, cmp);
+    cout &lt;&lt; &quot;search(5) index=&quot; &lt;&lt; p &lt;&lt; &quot; cmp=&quot; &lt;&lt; cmp &lt;&lt; &quot;\n&quot;;
+
+    // 哨兵：a0[1..6] 存表，a0[0] 作哨兵
+    int a0[MAXN] = {0, 4, 7, 2, 9, 1, 6};
+    p = seqSearchSentinel(a0, n, 9, cmp);
+    cout &lt;&lt; &quot;sentinel(9) index=&quot; &lt;&lt; p &lt;&lt; &quot; cmp=&quot; &lt;&lt; cmp &lt;&lt; &quot;\n&quot;;
+    p = seqSearchSentinel(a0, n, 5, cmp);
+    cout &lt;&lt; &quot;sentinel(5) index=&quot; &lt;&lt; p &lt;&lt; &quot; cmp=&quot; &lt;&lt; cmp &lt;&lt; &quot;\n&quot;;
+
+    cout &lt;&lt; &quot;ASL_success=&quot; &lt;&lt; aslSuccess(n) &lt;&lt; &quot;\n&quot;;
+    // 等概率失败：无序表失败总要扫完，比较 n 次；失败 ASL = n
+    cout &lt;&lt; &quot;ASL_fail_cmp=&quot; &lt;&lt; n &lt;&lt; &quot;\n&quot;;
+
+    // 空表
+    cmp = 0;
+    p = seqSearch(a, 0, 1, cmp);
+    if (p &lt; 0) cout &lt;&lt; &quot;empty=-1\n&quot;;
+    return 0;
+}
+</code></pre>
+  </section>
+  <nav class="pager"><a href="aoe.html">上一节<br>AOE网和关键路径</a><a href="binary-search.html">下一节<br>折半查找(二分查找)</a></nav>
+</main>
+<script>window.LESSON_ANIM={"kind":"array","frames":[{"note":"表：4 7 2 9 1 6，先找成功关键字 9","cells":["4","7","2","9","1","6"],"hl":[]},{"note":"比第1个：4≠9，继续","cells":["4","7","2","9","1","6"],"hl":[0]},{"note":"比第2个：7≠9，继续","cells":["4","7","2","9","1","6"],"hl":[1]},{"note":"比第3个：2≠9，继续","cells":["4","7","2","9","1","6"],"hl":[2]},{"note":"比第4个：9=9，成功，比较4次","cells":["4","7","2","9","1","6"],"hl":[3],"done":[3]},{"note":"再找失败关键字 5，从头扫","cells":["4","7","2","9","1","6"],"hl":[]},{"note":"4≠5，7≠5，2≠5…继续","cells":["4","7","2","9","1","6"],"hl":[0,1,2]},{"note":"9≠5，1≠5，6≠5，扫完失败，比较6次","cells":["4","7","2","9","1","6"],"hl":[3,4,5]},{"note":"哨兵：把5放到下标0，从右往左比","cells":["5","4","7","2","9","1","6"],"hl":[0]},{"note":"碰到哨兵才停，失败比较次数仍约n","cells":["5","4","7","2","9","1","6"],"hl":[0,6]},{"note":"等概率成功ASL=(1+…+6)/6=3.5","cells":["4","7","2","9","1","6"],"hl":[0,1,2,3,4,5]},{"note":"失败ASL：无序表每次失败都比满n次","cells":["4","7","2","9","1","6"],"hl":[]}]};</script>
+<script src="../assets/js/anim.js"></script>
+</body>
+</html>

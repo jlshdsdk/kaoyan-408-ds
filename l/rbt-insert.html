@@ -1,0 +1,209 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>红黑树 - 定义, 插入, 构建</title>
+<link rel="stylesheet" href="../assets/css/site.css">
+<link rel="icon" href="data:,">
+</head>
+<body>
+<header class="top">
+  <a class="brand" href="../index.html">408 数据结构</a>
+  <span class="muted">40 / 67</span>
+</header>
+<main class="wrap lesson">
+  <p class="crumb">查找</p>
+  <h1>红黑树 - 定义, 插入, 构建</h1>
+  <p>红黑树用颜色约束近似平衡，新结点先红再修</p>
+  <div class="stage-wrap"><canvas id="stage" width="960" height="360"></canvas></div>
+  <p id="note"></p>
+  <div class="controls">
+    <button id="prev" type="button">上一步</button>
+    <button id="play" type="button">播放</button>
+    <button id="next" type="button">下一步</button>
+    <span id="step" class="muted"></span>
+    <span class="muted">方向键也可切换</span>
+  </div>
+  <section class="panel">
+    <h2>要点</h2>
+    <ul><li>根必须黑；空叶视为黑；红结点孩子必黑</li><li>任一结点到叶的黑高相同（不含红）</li><li>插入先染红，冲突靠变色或旋转上推修复</li><li>叔红则变色；叔黑则按线型/折型旋转并改色</li></ul>
+    <p class="muted">查找/插入最好最坏平均 O(log n)；单次修复旋转常数次；空间 O(n)</p>
+  </section>
+  <section class="panel">
+    <h2>完整 C++ 代码</h2>
+    <p><a href="../c/rbt-insert.cpp" download>下载 .cpp</a>
+    <button id="copy" type="button">复制</button></p>
+    <pre><code id="code">// Red-black tree: 5 properties, insert 10 20 30 15 25, recolor + rotate
+#include &lt;iostream&gt;
+#include &lt;algorithm&gt;
+using namespace std;
+
+enum Color { RED, BLACK };
+
+struct Node {
+    int key;
+    Color color;
+    Node* left;
+    Node* right;
+    Node* parent;
+    Node(int k) : key(k), color(RED), left(nullptr), right(nullptr), parent(nullptr) {}
+};
+
+Node* root = nullptr;
+
+bool isRed(Node* p) { return p &amp;&amp; p-&gt;color == RED; }
+bool isBlack(Node* p) { return !p || p-&gt;color == BLACK; }
+
+void rotateLeft(Node*&amp; rootRef, Node* x) {
+    Node* y = x-&gt;right;
+    x-&gt;right = y-&gt;left;
+    if (y-&gt;left) y-&gt;left-&gt;parent = x;
+    y-&gt;parent = x-&gt;parent;
+    if (!x-&gt;parent) rootRef = y;
+    else if (x == x-&gt;parent-&gt;left) x-&gt;parent-&gt;left = y;
+    else x-&gt;parent-&gt;right = y;
+    y-&gt;left = x;
+    x-&gt;parent = y;
+}
+
+void rotateRight(Node*&amp; rootRef, Node* y) {
+    Node* x = y-&gt;left;
+    y-&gt;left = x-&gt;right;
+    if (x-&gt;right) x-&gt;right-&gt;parent = y;
+    x-&gt;parent = y-&gt;parent;
+    if (!y-&gt;parent) rootRef = x;
+    else if (y == y-&gt;parent-&gt;left) y-&gt;parent-&gt;left = x;
+    else y-&gt;parent-&gt;right = x;
+    x-&gt;right = y;
+    y-&gt;parent = x;
+}
+
+void insertFix(Node*&amp; rootRef, Node* z) {
+    while (isRed(z-&gt;parent)) {
+        Node* p = z-&gt;parent;
+        Node* g = p-&gt;parent;
+        if (p == g-&gt;left) {
+            Node* u = g-&gt;right;
+            if (isRed(u)) {
+                // uncle red: recolor
+                p-&gt;color = BLACK;
+                u-&gt;color = BLACK;
+                g-&gt;color = RED;
+                z = g;
+            } else {
+                if (z == p-&gt;right) {
+                    z = p;
+                    rotateLeft(rootRef, z);
+                    p = z-&gt;parent;
+                    g = p-&gt;parent;
+                }
+                p-&gt;color = BLACK;
+                g-&gt;color = RED;
+                rotateRight(rootRef, g);
+            }
+        } else {
+            Node* u = g-&gt;left;
+            if (isRed(u)) {
+                p-&gt;color = BLACK;
+                u-&gt;color = BLACK;
+                g-&gt;color = RED;
+                z = g;
+            } else {
+                if (z == p-&gt;left) {
+                    z = p;
+                    rotateRight(rootRef, z);
+                    p = z-&gt;parent;
+                    g = p-&gt;parent;
+                }
+                p-&gt;color = BLACK;
+                g-&gt;color = RED;
+                rotateLeft(rootRef, g);
+            }
+        }
+    }
+    rootRef-&gt;color = BLACK;
+}
+
+void insertKey(Node*&amp; rootRef, int key) {
+    Node* z = new Node(key);
+    Node* y = nullptr;
+    Node* x = rootRef;
+    while (x) {
+        y = x;
+        if (key &lt; x-&gt;key) x = x-&gt;left;
+        else if (key &gt; x-&gt;key) x = x-&gt;right;
+        else {
+            delete z;
+            return;
+        }
+    }
+    z-&gt;parent = y;
+    if (!y) rootRef = z;
+    else if (key &lt; y-&gt;key) y-&gt;left = z;
+    else y-&gt;right = z;
+    insertFix(rootRef, z);
+}
+
+void inorder(Node* p) {
+    if (!p) return;
+    inorder(p-&gt;left);
+    cout &lt;&lt; p-&gt;key &lt;&lt; (p-&gt;color == RED ? &quot;R&quot; : &quot;B&quot;) &lt;&lt; &quot; &quot;;
+    inorder(p-&gt;right);
+}
+
+bool noAdjRed(Node* p) {
+    if (!p) return true;
+    if (isRed(p)) {
+        if (isRed(p-&gt;left) || isRed(p-&gt;right)) return false;
+    }
+    return noAdjRed(p-&gt;left) &amp;&amp; noAdjRed(p-&gt;right);
+}
+
+int blackHeight(Node* p, bool&amp; ok) {
+    if (!p) return 1;
+    int L = blackHeight(p-&gt;left, ok);
+    int R = blackHeight(p-&gt;right, ok);
+    if (L != R) ok = false;
+    return L + (p-&gt;color == BLACK ? 1 : 0);
+}
+
+bool checkRB(Node* r) {
+    if (!r) return true;
+    if (r-&gt;color != BLACK) return false;
+    if (!noAdjRed(r)) return false;
+    bool ok = true;
+    blackHeight(r, ok);
+    return ok;
+}
+
+void freeTree(Node* p) {
+    if (!p) return;
+    freeTree(p-&gt;left);
+    freeTree(p-&gt;right);
+    delete p;
+}
+
+int main() {
+    root = nullptr;
+    int a[] = {10, 20, 30, 15, 25};
+    for (int k : a) insertKey(root, k);
+
+    cout &lt;&lt; &quot;inorder: &quot;;
+    inorder(root);
+    cout &lt;&lt; &quot;\n&quot;;
+    cout &lt;&lt; (checkRB(root) ? &quot;RB OK\n&quot; : &quot;RB BAD\n&quot;);
+    // properties: root black, no adj red, equal black-height, NIL black
+
+    freeTree(root);
+    root = nullptr;
+    return 0;
+}
+</code></pre>
+  </section>
+  <nav class="pager"><a href="avl.html">上一节<br>平衡二叉树(AVL树)</a><a href="rbt-delete.html">下一节<br>红黑树 - 删除</a></nav>
+</main>
+<script>window.LESSON_ANIM={"kind":"graph","frames":[{"note":"插 10，新结点先红，根再强制改黑","nodes":[{"id":"a","v":"10B","x":0.5,"y":0.4}],"edges":[],"hl":["a"]},{"note":"插 20R，父黑无冲突","nodes":[{"id":"a","v":"10B","x":0.45,"y":0.25},{"id":"b","v":"20R","x":0.65,"y":0.55}],"edges":[{"u":"a","v":"b","dir":true}],"hl":["b"]},{"note":"插 30R，父红叔黑，成右右线型","nodes":[{"id":"a","v":"10B","x":0.35,"y":0.2},{"id":"b","v":"20R","x":0.55,"y":0.45},{"id":"c","v":"30R","x":0.75,"y":0.7}],"edges":[{"u":"a","v":"b","dir":true,"hl":true},{"u":"b","v":"c","dir":true,"hl":true}],"hl":["c"]},{"note":"对 10 左旋并改色：20 成黑根","nodes":[{"id":"b","v":"20B","x":0.5,"y":0.25},{"id":"a","v":"10R","x":0.3,"y":0.55},{"id":"c","v":"30R","x":0.7,"y":0.55}],"edges":[{"u":"b","v":"a","dir":true},{"u":"b","v":"c","dir":true}],"hl":["b"]},{"note":"插 15R，父 10 红、叔 30 红，先变色","nodes":[{"id":"b","v":"20R","x":0.5,"y":0.2},{"id":"a","v":"10B","x":0.28,"y":0.45},{"id":"c","v":"30B","x":0.72,"y":0.45},{"id":"d","v":"15R","x":0.4,"y":0.7}],"edges":[{"u":"b","v":"a","dir":true},{"u":"b","v":"c","dir":true},{"u":"a","v":"d","dir":true,"hl":true}],"hl":["a","c","d"]},{"note":"祖 20 改红后作根再染黑；黑高恢复","nodes":[{"id":"b","v":"20B","x":0.5,"y":0.2},{"id":"a","v":"10B","x":0.28,"y":0.45},{"id":"c","v":"30B","x":0.72,"y":0.45},{"id":"d","v":"15R","x":0.4,"y":0.7}],"edges":[{"u":"b","v":"a","dir":true},{"u":"b","v":"c","dir":true},{"u":"a","v":"d","dir":true}],"hl":["b"]},{"note":"插 25R，挂在 30 左，父黑无需修","nodes":[{"id":"b","v":"20B","x":0.5,"y":0.18},{"id":"a","v":"10B","x":0.25,"y":0.42},{"id":"c","v":"30B","x":0.75,"y":0.42},{"id":"d","v":"15R","x":0.38,"y":0.68},{"id":"e","v":"25R","x":0.62,"y":0.68}],"edges":[{"u":"b","v":"a","dir":true},{"u":"b","v":"c","dir":true},{"u":"a","v":"d","dir":true},{"u":"c","v":"e","dir":true,"hl":true}],"hl":["e"]},{"note":"完成：无连续红，黑高一致，中序 10 15 20 25 30","nodes":[{"id":"b","v":"20B","x":0.5,"y":0.18},{"id":"a","v":"10B","x":0.25,"y":0.42},{"id":"c","v":"30B","x":0.75,"y":0.42},{"id":"d","v":"15R","x":0.38,"y":0.68},{"id":"e","v":"25R","x":0.62,"y":0.68}],"edges":[{"u":"b","v":"a","dir":true},{"u":"b","v":"c","dir":true},{"u":"a","v":"d","dir":true},{"u":"c","v":"e","dir":true}],"hl":[]}]};</script>
+<script src="../assets/js/anim.js"></script>
+</body>
+</html>

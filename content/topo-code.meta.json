@@ -1,0 +1,10 @@
+{
+  "blurb": "Kahn：入度队列，输出不足则有环",
+  "points": [
+    "先跑无环图，打印每步入度变化",
+    "输出点数等于顶点数则无环",
+    "再加回边演示 cycle detected",
+    "本 DAG 序为 A B C D E F"
+  ],
+  "complexity": "时间 O(V+E)；空间 O(V+E)"
+}

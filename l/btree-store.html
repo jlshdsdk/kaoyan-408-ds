@@ -1,0 +1,100 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>二叉树的存储 - 顺序存储, 链式存储</title>
+<link rel="stylesheet" href="../assets/css/site.css">
+<link rel="icon" href="data:,">
+</head>
+<body>
+<header class="top">
+  <a class="brand" href="../index.html">408 数据结构</a>
+  <span class="muted">7 / 67</span>
+</header>
+<main class="wrap lesson">
+  <p class="crumb">树</p>
+  <h1>二叉树的存储 - 顺序存储, 链式存储</h1>
+  <p>顺序数组与左右孩子指针</p>
+  <div class="stage-wrap"><canvas id="stage" width="960" height="360"></canvas></div>
+  <p id="note"></p>
+  <div class="controls">
+    <button id="prev" type="button">上一步</button>
+    <button id="play" type="button">播放</button>
+    <button id="next" type="button">下一步</button>
+    <span id="step" class="muted"></span>
+    <span class="muted">方向键也可切换</span>
+  </div>
+  <section class="panel">
+    <h2>要点</h2>
+    <ul><li>顺序：完全二叉树下标存值，空位用#占坑</li><li>下标i的左右孩子在2i与2i+1，缺则写#</li><li>链式：结点含data与lchild/rchild指针</li><li>稀疏树用顺序浪费空间，链式更灵活</li><li>同一棵树两种视图应对不同算法场景</li></ul>
+    <p class="muted">顺序随机访父子 O(1)；链式访孩子 O(1)、找父需额外域或遍历</p>
+  </section>
+  <section class="panel">
+    <h2>完整 C++ 代码</h2>
+    <p><a href="../c/btree-store.cpp" download>下载 .cpp</a>
+    <button id="copy" type="button">复制</button></p>
+    <pre><code id="code">// 二叉树存储：顺序存储 + 链式存储，同一棵树 A(B(D,E),C(F))
+#include &lt;iostream&gt;
+using namespace std;
+
+struct Node {
+    char data;
+    Node *l, *r;
+    explicit Node(char c) : data(c), l(nullptr), r(nullptr) {}
+};
+
+void free_tree(Node* t) {
+    if (!t) return;
+    free_tree(t-&gt;l);
+    free_tree(t-&gt;r);
+    delete t;
+}
+
+int main() {
+    // sequential: 1-based, empty as &#x27;#&#x27;
+    // index: 1A 2B 3C 4D 5E 6F 7#
+    const int CAP = 8;
+    char seq[CAP] = {&#x27;#&#x27;, &#x27;A&#x27;, &#x27;B&#x27;, &#x27;C&#x27;, &#x27;D&#x27;, &#x27;E&#x27;, &#x27;F&#x27;, &#x27;#&#x27;};
+
+    cout &lt;&lt; &quot;seq=&quot;;
+    for (int i = 1; i &lt; CAP; i++) cout &lt;&lt; seq[i];
+    cout &lt;&lt; &quot;\n&quot;;
+    for (int i = 1; i &lt; CAP; i++) {
+        if (seq[i] == &#x27;#&#x27;) continue;
+        cout &lt;&lt; seq[i] &lt;&lt; &quot;@&quot; &lt;&lt; i;
+        int L = 2 * i, R = 2 * i + 1;
+        if (L &lt; CAP) cout &lt;&lt; &quot; L=&quot; &lt;&lt; seq[L];
+        if (R &lt; CAP) cout &lt;&lt; &quot; R=&quot; &lt;&lt; seq[R];
+        cout &lt;&lt; &quot;\n&quot;;
+    }
+
+    // linked: A(B(D,E),C(F))
+    Node* A = new Node(&#x27;A&#x27;);
+    Node* B = new Node(&#x27;B&#x27;);
+    Node* C = new Node(&#x27;C&#x27;);
+    Node* D = new Node(&#x27;D&#x27;);
+    Node* E = new Node(&#x27;E&#x27;);
+    Node* F = new Node(&#x27;F&#x27;);
+    A-&gt;l = B; A-&gt;r = C;
+    B-&gt;l = D; B-&gt;r = E;
+    C-&gt;l = F;
+
+    cout &lt;&lt; &quot;link A-&gt;&quot; &lt;&lt; A-&gt;l-&gt;data &lt;&lt; &quot;,&quot; &lt;&lt; A-&gt;r-&gt;data &lt;&lt; &quot;\n&quot;;
+    cout &lt;&lt; &quot;link B-&gt;&quot; &lt;&lt; B-&gt;l-&gt;data &lt;&lt; &quot;,&quot; &lt;&lt; B-&gt;r-&gt;data &lt;&lt; &quot;\n&quot;;
+    cout &lt;&lt; &quot;link C-&gt;&quot; &lt;&lt; C-&gt;l-&gt;data &lt;&lt; &quot;,#\n&quot;;
+    cout &lt;&lt; &quot;link D-&gt;#,#\n&quot;;
+    cout &lt;&lt; &quot;link E-&gt;#,#\n&quot;;
+    cout &lt;&lt; &quot;link F-&gt;#,#\n&quot;;
+
+    free_tree(A);
+    return 0;
+}
+</code></pre>
+  </section>
+  <nav class="pager"><a href="btree-def.html">上一节<br>二叉树&amp;完全二叉树 - 定义, 性质</a><a href="btree-trav.html">下一节<br>二叉树的遍历 - 前序，中序，后序，层序</a></nav>
+</main>
+<script>window.LESSON_ANIM={"kind":"array","frames":[{"kind":"array","note":"同一棵树 A(B(D,E),C(F))，先看顺序存储。","cells":["?","?","?","?","?","?","?"],"hl":[]},{"kind":"array","note":"下标从 1：根 A 放在位置 1。","cells":["A","#","#","#","#","#","#"],"hl":[0]},{"kind":"array","note":"A 的左孩 B→下标 2，右孩 C→下标 3。","cells":["A","B","C","#","#","#","#"],"hl":[1,2]},{"kind":"array","note":"B 的孩子：D 在 4，E 在 5。","cells":["A","B","C","D","E","#","#"],"hl":[3,4]},{"kind":"array","note":"C 左孩 F 在 6；右空，下标 7 写 #。","cells":["A","B","C","D","E","F","#"],"hl":[5,6]},{"kind":"array","note":"顺序完成：ABCDEF#。下面切到链式图。","cells":["A","B","C","D","E","F","#"],"hl":[],"done":[0,1,2,3,4,5,6]},{"kind":"graph","note":"链式：A 的 lchild=B，rchild=C。","nodes":[{"id":"A","v":"A","x":0.5,"y":0.12},{"id":"B","v":"B","x":0.28,"y":0.42},{"id":"C","v":"C","x":0.72,"y":0.42},{"id":"D","v":"D","x":0.16,"y":0.78},{"id":"E","v":"E","x":0.4,"y":0.78},{"id":"F","v":"F","x":0.72,"y":0.78}],"edges":[{"u":"A","v":"B","hl":true},{"u":"A","v":"C","hl":true}],"hl":["A","B","C"]},{"kind":"graph","note":"B→D,E；C→F（右孩空）。","nodes":[{"id":"A","v":"A","x":0.5,"y":0.12},{"id":"B","v":"B","x":0.28,"y":0.42},{"id":"C","v":"C","x":0.72,"y":0.42},{"id":"D","v":"D","x":0.16,"y":0.78},{"id":"E","v":"E","x":0.4,"y":0.78},{"id":"F","v":"F","x":0.72,"y":0.78}],"edges":[{"u":"A","v":"B"},{"u":"A","v":"C"},{"u":"B","v":"D","hl":true},{"u":"B","v":"E","hl":true},{"u":"C","v":"F","hl":true}],"hl":["B","C","D","E","F"]},{"kind":"graph","note":"叶子 D E F 的左右指针均为空。","nodes":[{"id":"A","v":"A","x":0.5,"y":0.12},{"id":"B","v":"B","x":0.28,"y":0.42},{"id":"C","v":"C","x":0.72,"y":0.42},{"id":"D","v":"D","x":0.16,"y":0.78},{"id":"E","v":"E","x":0.4,"y":0.78},{"id":"F","v":"F","x":0.72,"y":0.78}],"edges":[{"u":"A","v":"B"},{"u":"A","v":"C"},{"u":"B","v":"D"},{"u":"B","v":"E"},{"u":"C","v":"F"}],"hl":["D","E","F"]},{"kind":"graph","note":"对照：顺序用下标，链式用指针，同一棵树。","nodes":[{"id":"A","v":"A","x":0.5,"y":0.12},{"id":"B","v":"B","x":0.28,"y":0.42},{"id":"C","v":"C","x":0.72,"y":0.42},{"id":"D","v":"D","x":0.16,"y":0.78},{"id":"E","v":"E","x":0.4,"y":0.78},{"id":"F","v":"F","x":0.72,"y":0.78}],"edges":[{"u":"A","v":"B"},{"u":"A","v":"C"},{"u":"B","v":"D"},{"u":"B","v":"E"},{"u":"C","v":"F"}],"hl":["A"]}]};</script>
+<script src="../assets/js/anim.js"></script>
+</body>
+</html>

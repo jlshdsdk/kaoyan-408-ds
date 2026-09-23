@@ -1,0 +1,99 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>双向冒泡排序代码(C/C++实现)</title>
+<link rel="stylesheet" href="../assets/css/site.css">
+<link rel="icon" href="data:,">
+</head>
+<body>
+<header class="top">
+  <a class="brand" href="../index.html">408 数据结构</a>
+  <span class="muted">54 / 67</span>
+</header>
+<main class="wrap lesson">
+  <p class="crumb">排序</p>
+  <h1>双向冒泡排序代码(C/C++实现)</h1>
+  <p>双向冒泡：左右各沉浮一轮</p>
+  <div class="stage-wrap"><canvas id="stage" width="960" height="360"></canvas></div>
+  <p id="note"></p>
+  <div class="controls">
+    <button id="prev" type="button">上一步</button>
+    <button id="play" type="button">播放</button>
+    <button id="next" type="button">下一步</button>
+    <span id="step" class="muted"></span>
+    <span class="muted">方向键也可切换</span>
+  </div>
+  <section class="panel">
+    <h2>要点</h2>
+    <ul><li>一趟先从左到右，把当前最大沉到右端</li><li>再从右到左，把当前最小浮到左端</li><li>两端同时收缩有序区，趟数常更少</li><li>相等不交换，仍是稳定排序</li></ul>
+    <p class="muted">时间最好 O(n)、最坏/平均 O(n^2)；空间 O(1)；稳定</p>
+  </section>
+  <section class="panel">
+    <h2>完整 C++ 代码</h2>
+    <p><a href="../c/bubble-bi.cpp" download>下载 .cpp</a>
+    <button id="copy" type="button">复制</button></p>
+    <pre><code id="code">// 双向冒泡排序：一趟先左到右再右到左
+#include &lt;iostream&gt;
+using namespace std;
+
+void print_arr(const int a[], int n) {
+    for (int i = 0; i &lt; n; i++) {
+        if (i) cout &lt;&lt; &quot; &quot;;
+        cout &lt;&lt; a[i];
+    }
+    cout &lt;&lt; &quot;\n&quot;;
+}
+
+void bubble_bi_sort(int a[], int n) {
+    if (n &lt;= 0) {
+        cout &lt;&lt; &quot;error\n&quot;;
+        return;
+    }
+    cout &lt;&lt; &quot;init: &quot;;
+    print_arr(a, n);
+    int left = 0, right = n - 1;
+    int pass = 0;
+    while (left &lt; right) {
+        pass++;
+        for (int i = left; i &lt; right; i++) {
+            if (a[i] &gt; a[i + 1]) {
+                int t = a[i];
+                a[i] = a[i + 1];
+                a[i + 1] = t;
+            }
+        }
+        right--;
+        cout &lt;&lt; &quot;pass &quot; &lt;&lt; pass &lt;&lt; &quot; L-&gt;R: &quot;;
+        print_arr(a, n);
+
+        for (int i = right; i &gt; left; i--) {
+            if (a[i - 1] &gt; a[i]) {
+                int t = a[i - 1];
+                a[i - 1] = a[i];
+                a[i] = t;
+            }
+        }
+        left++;
+        cout &lt;&lt; &quot;pass &quot; &lt;&lt; pass &lt;&lt; &quot; R-&gt;L: &quot;;
+        print_arr(a, n);
+    }
+}
+
+int main() {
+    int a[] = {5, 2, 8, 1, 9, 3};
+    int n = 6;
+    bubble_bi_sort(a, n);
+    cout &lt;&lt; &quot;result: &quot;;
+    print_arr(a, n);
+    return 0;
+}
+</code></pre>
+  </section>
+  <nav class="pager"><a href="bubble-code.html">上一节<br>冒泡排序及其改进代码(C/C++实现)</a><a href="quick-idea.html">下一节<br>快速排序</a></nav>
+</main>
+<script>window.LESSON_ANIM={"kind":"bars","frames":[{"note":"init: 5 2 8 1 9 3","vals":[5,2,8,1,9,3],"hl":[]},{"note":"pass1 L->R：最大 9 沉到末尾","vals":[2,5,1,8,3,9],"hl":[5],"done":[5]},{"note":"pass1 R->L：最小 1 浮到最前","vals":[1,2,5,3,8,9],"hl":[0],"done":[0,5]},{"note":"pass1 后：两端已就位","vals":[1,2,5,3,8,9],"hl":[],"done":[0,5]},{"note":"pass2 L->R：8 沉到次末","vals":[1,2,3,5,8,9],"hl":[4],"done":[0,4,5]},{"note":"pass2 R->L：中间已基本有序","vals":[1,2,3,5,8,9],"hl":[1,2],"done":[0,4,5]},{"note":"pass2 后：1 2 3 5 8 9","vals":[1,2,3,5,8,9],"hl":[],"done":[0,1,4,5]},{"note":"pass3：区间收窄，确认中间","vals":[1,2,3,5,8,9],"hl":[2,3],"done":[0,1,4,5]},{"note":"双向收缩完毕","vals":[1,2,3,5,8,9],"hl":[],"done":[0,1,2,3,4,5]},{"note":"result: 1 2 3 5 8 9","vals":[1,2,3,5,8,9],"hl":[],"done":[0,1,2,3,4,5]}]};</script>
+<script src="../assets/js/anim.js"></script>
+</body>
+</html>

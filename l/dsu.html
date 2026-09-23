@@ -1,0 +1,124 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>并查集 - 基本操作，路径压缩，按秩合并</title>
+<link rel="stylesheet" href="../assets/css/site.css">
+<link rel="icon" href="data:,">
+</head>
+<body>
+<header class="top">
+  <a class="brand" href="../index.html">408 数据结构</a>
+  <span class="muted">15 / 67</span>
+</header>
+<main class="wrap lesson">
+  <p class="crumb">树</p>
+  <h1>并查集 - 基本操作，路径压缩，按秩合并</h1>
+  <p>按秩合并加路径压缩，近乎常数查找</p>
+  <div class="stage-wrap"><canvas id="stage" width="960" height="360"></canvas></div>
+  <p id="note"></p>
+  <div class="controls">
+    <button id="prev" type="button">上一步</button>
+    <button id="play" type="button">播放</button>
+    <button id="next" type="button">下一步</button>
+    <span id="step" class="muted"></span>
+    <span class="muted">方向键也可切换</span>
+  </div>
+  <section class="panel">
+    <h2>要点</h2>
+    <ul><li>find 沿父指针上升，顺带把路径压到根</li><li>union 先找根，再按秩把矮树挂到高树</li><li>秩相同才升高接收方的秩</li><li>连通判定：find(a)==find(b)</li></ul>
+    <p class="muted">均摊几乎 O(α(n))；朴素不压缩不按秩最坏接近 O(n)</p>
+  </section>
+  <section class="panel">
+    <h2>完整 C++ 代码</h2>
+    <p><a href="../c/dsu.cpp" download>下载 .cpp</a>
+    <button id="copy" type="button">复制</button></p>
+    <pre><code id="code">// Disjoint set: union by rank + path compression.
+// Elements 1..6; unions 1-2, 3-4, 2-4, 5-6; then find(1).
+#include &lt;iostream&gt;
+#include &lt;vector&gt;
+using namespace std;
+
+struct DSU {
+    vector&lt;int&gt; p, r;
+    DSU(int n) : p(n + 1), r(n + 1, 0) {
+        for (int i = 0; i &lt;= n; ++i) p[i] = i;
+    }
+
+    int find(int x) {
+        if (x &lt; 0 || x &gt;= (int)p.size()) {
+            cout &lt;&lt; &quot;error\n&quot;;
+            return -1;
+        }
+        if (p[x] != x) p[x] = find(p[x]);
+        return p[x];
+    }
+
+    bool unite(int a, int b) {
+        int ra = find(a), rb = find(b);
+        if (ra &lt; 0 || rb &lt; 0) return false;
+        if (ra == rb) return false;
+        if (r[ra] &lt; r[rb]) {
+            p[ra] = rb;
+        } else if (r[ra] &gt; r[rb]) {
+            p[rb] = ra;
+        } else {
+            p[rb] = ra;
+            r[ra]++;
+        }
+        return true;
+    }
+};
+
+int main() {
+    DSU d(6);
+    int ops[][2] = {{1, 2}, {3, 4}, {2, 4}, {5, 6}};
+    for (auto&amp; op : ops) {
+        d.unite(op[0], op[1]);
+        cout &lt;&lt; &quot;union &quot; &lt;&lt; op[0] &lt;&lt; &quot;-&quot; &lt;&lt; op[1] &lt;&lt; &quot;\n&quot;;
+    }
+
+    cout &lt;&lt; &quot;parent before find:&quot;;
+    for (int i = 1; i &lt;= 6; ++i) cout &lt;&lt; &quot; &quot; &lt;&lt; d.p[i];
+    cout &lt;&lt; &quot;\n&quot;;
+
+    // 4 -&gt; 3 -&gt; 1; find(4) compresses, root of 1&#x27;s set stays 1
+    cout &lt;&lt; &quot;find(4)=&quot; &lt;&lt; d.find(4) &lt;&lt; &quot;\n&quot;;
+    cout &lt;&lt; &quot;find(1)=&quot; &lt;&lt; d.find(1) &lt;&lt; &quot;\n&quot;;
+
+    cout &lt;&lt; &quot;parent after find:&quot;;
+    for (int i = 1; i &lt;= 6; ++i) cout &lt;&lt; &quot; &quot; &lt;&lt; d.p[i];
+    cout &lt;&lt; &quot;\n&quot;;
+
+    cout &lt;&lt; &quot;roots:&quot;;
+    for (int i = 1; i &lt;= 6; ++i) cout &lt;&lt; &quot; &quot; &lt;&lt; d.find(i);
+    cout &lt;&lt; &quot;\n&quot;;
+
+    cout &lt;&lt; &quot;components:\n&quot;;
+    vector&lt;bool&gt; seen(7, false);
+    for (int i = 1; i &lt;= 6; ++i) {
+        int rt = d.find(i);
+        if (seen[rt]) continue;
+        seen[rt] = true;
+        cout &lt;&lt; &quot;  {&quot;;
+        bool first = true;
+        for (int j = 1; j &lt;= 6; ++j) {
+            if (d.find(j) == rt) {
+                if (!first) cout &lt;&lt; &quot;,&quot;;
+                cout &lt;&lt; j;
+                first = false;
+            }
+        }
+        cout &lt;&lt; &quot;}\n&quot;;
+    }
+    return 0;
+}
+</code></pre>
+  </section>
+  <nav class="pager"><a href="huffman.html">上一节<br>哈夫曼树和哈夫曼编码</a><a href="graph-def.html">下一节<br>图 - 定义, 术语, 性质</a></nav>
+</main>
+<script>window.LESSON_ANIM={"kind":"array","frames":[{"note":"并查集 parent[1..6] 初值各指向自己","cells":["1","2","3","4","5","6"],"hl":[]},{"note":"union(1,2)：同秩，2 挂到 1，rank[1]=1","cells":["1","1","3","4","5","6"],"hl":[0,1]},{"note":"union(3,4)：4 挂到 3，rank[3]=1","cells":["1","1","3","3","5","6"],"hl":[2,3]},{"note":"union(2,4)：根为 1 与 3，同秩，3 挂到 1","cells":["1","1","1","3","5","6"],"hl":[0,2]},{"note":"此时 4 仍指向 3，链为 4→3→1","cells":["1","1","1","3","5","6"],"hl":[3,2,0]},{"note":"union(5,6)：6 挂到 5","cells":["1","1","1","3","5","5"],"hl":[4,5]},{"note":"find(4) 沿 4→3→1 上升到根","cells":["1","1","1","3","5","5"],"hl":[3]},{"note":"路径压缩：p[4]=1，再 find(1)=1","cells":["1","1","1","1","5","5"],"hl":[3,0]},{"note":"连通块 {1,2,3,4} 与 {5,6}","cells":["1","1","1","1","5","5"],"hl":[0,1,2,3],"done":[4,5]},{"note":"按秩合并避免退化，压缩让下次 find 更快","cells":["1","1","1","1","5","5"],"hl":[],"done":[0,1,2,3,4,5]}]};</script>
+<script src="../assets/js/anim.js"></script>
+</body>
+</html>

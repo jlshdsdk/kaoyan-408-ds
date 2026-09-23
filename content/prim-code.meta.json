@@ -1,0 +1,10 @@
+{
+  "blurb": "Prim 维护 lowcost：树外顶点到树的最短边",
+  "points": [
+    "每次取未入树且 lowcost 最小的顶点",
+    "用新点松弛邻居的 lowcost 与前驱",
+    "从 A 得到边 AB,BC,CD,DE，总权 8",
+    "邻接矩阵实现朴素版，适合教学"
+  ],
+  "complexity": "邻接矩阵 Prim：时间 O(n^2)；空间 O(n^2)；堆优化可达 O(m log n)"
+}

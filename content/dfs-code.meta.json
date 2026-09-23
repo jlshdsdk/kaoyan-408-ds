@@ -1,0 +1,10 @@
+{
+  "blurb": "递归 DFS：进入标访问，扫邻居，离开即出栈",
+  "points": [
+    "enter 对应入栈，leave 对应出栈返回",
+    "visit 顺序仍是 A B D C E",
+    "已访问邻居打印 skip，避免重复深入",
+    "需 vis 数组，防止有向环导致死递归"
+  ],
+  "complexity": "时间 O(n+m)；递归栈最坏 O(n)；额外 vis 空间 O(n)"
+}

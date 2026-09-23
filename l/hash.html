@@ -1,0 +1,124 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>散列表(哈希表) - 散列函数, 冲突处理, 平均查找长度(ASL)</title>
+<link rel="stylesheet" href="../assets/css/site.css">
+<link rel="icon" href="data:,">
+</head>
+<body>
+<header class="top">
+  <a class="brand" href="../index.html">408 数据结构</a>
+  <span class="muted">45 / 67</span>
+</header>
+<main class="wrap lesson">
+  <p class="crumb">查找</p>
+  <h1>散列表(哈希表) - 散列函数, 冲突处理, 平均查找长度(ASL)</h1>
+  <p>散列把关键字映射到桶，冲突再用链或探测</p>
+  <div class="stage-wrap"><canvas id="stage" width="960" height="360"></canvas></div>
+  <p id="note"></p>
+  <div class="controls">
+    <button id="prev" type="button">上一步</button>
+    <button id="play" type="button">播放</button>
+    <button id="next" type="button">下一步</button>
+    <span id="step" class="muted"></span>
+    <span class="muted">方向键也可切换</span>
+  </div>
+  <section class="panel">
+    <h2>要点</h2>
+    <ul><li>本例 H(key)=key%7，表长 7，装载随插入升高</li><li>拉链：同余关键字串在同一桶的链表上</li><li>成功 ASL 是各关键字查找比较次数的平均</li><li>开放定址线性探测：冲突看下一空槽，ASL 随填装因子升</li></ul>
+    <p class="muted">理想均匀时查找平均 O(1)；最坏退化为 O(n)；空间 O(m+n)，m 为表长</p>
+  </section>
+  <section class="panel">
+    <h2>完整 C++ 代码</h2>
+    <p><a href="../c/hash.cpp" download>下载 .cpp</a>
+    <button id="copy" type="button">复制</button></p>
+    <pre><code id="code">// Hash table: H(key)=key%7, chain resolve, successful ASL
+#include &lt;iostream&gt;
+#include &lt;iomanip&gt;
+using namespace std;
+
+const int M = 7;
+
+struct Node {
+    int key;
+    Node* next;
+    Node(int k) : key(k), next(nullptr) {}
+};
+
+int H(int key) { return key % M; }
+
+void insert(Node* table[], int key) {
+    int b = H(key);
+    Node* p = new Node(key);
+    p-&gt;next = table[b];
+    table[b] = p;
+    cout &lt;&lt; &quot;ins &quot; &lt;&lt; key &lt;&lt; &quot; -&gt; bucket &quot; &lt;&lt; b &lt;&lt; &quot;\n&quot;;
+}
+
+Node* find(Node* table[], int key, int&amp; comps) {
+    comps = 0;
+    int b = H(key);
+    for (Node* p = table[b]; p; p = p-&gt;next) {
+        comps++;
+        if (p-&gt;key == key) return p;
+    }
+    return nullptr;
+}
+
+double successASL(Node* table[], const int keys[], int n) {
+    int sum = 0;
+    for (int i = 0; i &lt; n; i++) {
+        int c = 0;
+        find(table, keys[i], c);
+        sum += c;
+    }
+    return n ? (double)sum / n : 0.0;
+}
+
+void printTable(Node* table[]) {
+    for (int i = 0; i &lt; M; i++) {
+        cout &lt;&lt; &quot;[&quot; &lt;&lt; i &lt;&lt; &quot;]&quot;;
+        for (Node* p = table[i]; p; p = p-&gt;next) cout &lt;&lt; &quot;-&gt;&quot; &lt;&lt; p-&gt;key;
+        cout &lt;&lt; &quot;\n&quot;;
+    }
+}
+
+void freeTable(Node* table[]) {
+    for (int i = 0; i &lt; M; i++) {
+        Node* p = table[i];
+        while (p) {
+            Node* q = p-&gt;next;
+            delete p;
+            p = q;
+        }
+        table[i] = nullptr;
+    }
+}
+
+int main() {
+    Node* table[M] = {};
+    int keys[] = {14, 8, 21, 15, 7};
+    int n = 5;
+    for (int i = 0; i &lt; n; i++) insert(table, keys[i]);
+    printTable(table);
+
+    double asl = successASL(table, keys, n);
+    cout &lt;&lt; fixed &lt;&lt; setprecision(2);
+    cout &lt;&lt; &quot;ASL_success=&quot; &lt;&lt; asl &lt;&lt; &quot;\n&quot;;
+
+    int c = 0;
+    if (!find(table, 99, c)) cout &lt;&lt; &quot;find(99)=miss comps=&quot; &lt;&lt; c &lt;&lt; &quot;\n&quot;;
+
+    freeTable(table);
+    return 0;
+}
+</code></pre>
+  </section>
+  <nav class="pager"><a href="bplus.html">上一节<br>B+树</a><a href="insert-idea.html">下一节<br>直接插入排序</a></nav>
+</main>
+<script>window.LESSON_ANIM={"kind":"hash","frames":[{"note":"空表，7 个桶，H(key)=key%7","buckets":[[],[],[],[],[],[],[]],"hl":{"b":0,"i":0}},{"note":"插入 14，14%7=0，放入桶 0","buckets":[["14"],[],[],[],[],[],[]],"hl":{"b":0,"i":0}},{"note":"插入 8，8%7=1，放入桶 1","buckets":[["14"],["8"],[],[],[],[],[]],"hl":{"b":1,"i":0}},{"note":"插入 21，21%7=0，与 14 冲突，头插拉链","buckets":[["21","14"],["8"],[],[],[],[],[]],"hl":{"b":0,"i":0}},{"note":"插入 15，15%7=1，挂到桶 1 链头","buckets":[["21","14"],["15","8"],[],[],[],[],[]],"hl":{"b":1,"i":0}},{"note":"插入 7，7%7=0，再进桶 0 链头","buckets":[["7","21","14"],["15","8"],[],[],[],[],[]],"hl":{"b":0,"i":0}},{"note":"查找 7：桶 0 第 1 个就命中，比较 1 次","buckets":[["7","21","14"],["15","8"],[],[],[],[],[]],"hl":{"b":0,"i":0}},{"note":"查找 14：沿链比较 3 次才命中","buckets":[["7","21","14"],["15","8"],[],[],[],[],[]],"hl":{"b":0,"i":2}},{"note":"成功 ASL=(1+2+3+1+2)/5=1.80","buckets":[["7","21","14"],["15","8"],[],[],[],[],[]],"hl":{"b":1,"i":0}},{"note":"要点：线性探测冲突则看下一空位，填装越高 ASL 越大","buckets":[["7","21","14"],["15","8"],[],[],[],[],[]],"hl":{"b":0,"i":1}}]};</script>
+<script src="../assets/js/anim.js"></script>
+</body>
+</html>

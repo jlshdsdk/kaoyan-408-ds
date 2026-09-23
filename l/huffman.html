@@ -1,0 +1,146 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>哈夫曼树和哈夫曼编码</title>
+<link rel="stylesheet" href="../assets/css/site.css">
+<link rel="icon" href="data:,">
+</head>
+<body>
+<header class="top">
+  <a class="brand" href="../index.html">408 数据结构</a>
+  <span class="muted">14 / 67</span>
+</header>
+<main class="wrap lesson">
+  <p class="crumb">树</p>
+  <h1>哈夫曼树和哈夫曼编码</h1>
+  <p>反复合并最小两棵，得最优前缀码</p>
+  <div class="stage-wrap"><canvas id="stage" width="960" height="360"></canvas></div>
+  <p id="note"></p>
+  <div class="controls">
+    <button id="prev" type="button">上一步</button>
+    <button id="play" type="button">播放</button>
+    <button id="next" type="button">下一步</button>
+    <span id="step" class="muted"></span>
+    <span class="muted">方向键也可切换</span>
+  </div>
+  <section class="panel">
+    <h2>要点</h2>
+    <ul><li>每次取权最小的两棵合并为新结点</li><li>左 0 右 1 从根到叶即该字符编码</li><li>哈夫曼码一定是前缀码，可唯一译码</li><li>带权路径长 WPL 在同类二叉树中最小</li></ul>
+    <p class="muted">n 个字符用堆构建 O(n log n)；编码/译码与树高相关，最坏 O(n)</p>
+  </section>
+  <section class="panel">
+    <h2>完整 C++ 代码</h2>
+    <p><a href="../c/huffman.cpp" download>下载 .cpp</a>
+    <button id="copy" type="button">复制</button></p>
+    <pre><code id="code">// Huffman tree + prefix codes. Weights A:5 B:3 C:2 D:7 E:9.
+#include &lt;iostream&gt;
+#include &lt;queue&gt;
+#include &lt;string&gt;
+#include &lt;vector&gt;
+using namespace std;
+
+struct Node {
+    char ch;      // &#x27;\0&#x27; for internal
+    int w;
+    Node* l;
+    Node* r;
+    Node(char c, int weight) : ch(c), w(weight), l(nullptr), r(nullptr) {}
+};
+
+struct Cmp {
+    bool operator()(const Node* a, const Node* b) const {
+        if (a-&gt;w != b-&gt;w) return a-&gt;w &gt; b-&gt;w;
+        bool al = a-&gt;ch &gt;= &#x27;A&#x27; &amp;&amp; a-&gt;ch &lt;= &#x27;Z&#x27;;
+        bool bl = b-&gt;ch &gt;= &#x27;A&#x27; &amp;&amp; b-&gt;ch &lt;= &#x27;Z&#x27;;
+        if (al != bl) return !al;  // prefer leaf over internal
+        return a-&gt;ch &gt; b-&gt;ch;
+    }
+};
+
+void encode(Node* p, const string&amp; path, vector&lt;string&gt;&amp; codes) {
+    if (!p) return;
+    if (!p-&gt;l &amp;&amp; !p-&gt;r) {
+        if (p-&gt;ch &gt;= &#x27;A&#x27; &amp;&amp; p-&gt;ch &lt;= &#x27;E&#x27;) {
+            codes[p-&gt;ch - &#x27;A&#x27;] = path.empty() ? &quot;0&quot; : path;
+        }
+        return;
+    }
+    encode(p-&gt;l, path + &quot;0&quot;, codes);
+    encode(p-&gt;r, path + &quot;1&quot;, codes);
+}
+
+int wpl(Node* p, int depth) {
+    if (!p) return 0;
+    if (!p-&gt;l &amp;&amp; !p-&gt;r) return p-&gt;w * depth;
+    return wpl(p-&gt;l, depth + 1) + wpl(p-&gt;r, depth + 1);
+}
+
+bool is_prefix_free(const vector&lt;string&gt;&amp; codes) {
+    for (size_t i = 0; i &lt; codes.size(); ++i) {
+        if (codes[i].empty()) continue;
+        for (size_t j = 0; j &lt; codes.size(); ++j) {
+            if (i == j || codes[j].empty()) continue;
+            if (codes[j].size() &gt;= codes[i].size() &amp;&amp;
+                codes[j].compare(0, codes[i].size(), codes[i]) == 0) {
+                return false;
+            }
+        }
+    }
+    return true;
+}
+
+void free_tree(Node* p) {
+    if (!p) return;
+    free_tree(p-&gt;l);
+    free_tree(p-&gt;r);
+    delete p;
+}
+
+int main() {
+    // A:5 B:3 C:2 D:7 E:9
+    const char chars[] = {&#x27;A&#x27;, &#x27;B&#x27;, &#x27;C&#x27;, &#x27;D&#x27;, &#x27;E&#x27;};
+    const int weights[] = {5, 3, 2, 7, 9};
+
+    priority_queue&lt;Node*, vector&lt;Node*&gt;, Cmp&gt; pq;
+    for (int i = 0; i &lt; 5; ++i) {
+        pq.push(new Node(chars[i], weights[i]));
+    }
+
+    cout &lt;&lt; &quot;merge steps:\n&quot;;
+    while (pq.size() &gt; 1) {
+        Node* a = pq.top();
+        pq.pop();
+        Node* b = pq.top();
+        pq.pop();
+        Node* p = new Node(&#x27;\0&#x27;, a-&gt;w + b-&gt;w);
+        p-&gt;l = a;
+        p-&gt;r = b;
+        cout &lt;&lt; &quot;  merge &quot; &lt;&lt; a-&gt;w &lt;&lt; &quot; + &quot; &lt;&lt; b-&gt;w &lt;&lt; &quot; -&gt; &quot; &lt;&lt; p-&gt;w &lt;&lt; &quot;\n&quot;;
+        pq.push(p);
+    }
+
+    Node* root = pq.top();
+    vector&lt;string&gt; codes(5);
+    encode(root, &quot;&quot;, codes);
+
+    cout &lt;&lt; &quot;codes:\n&quot;;
+    for (int i = 0; i &lt; 5; ++i) {
+        cout &lt;&lt; &quot;  &quot; &lt;&lt; chars[i] &lt;&lt; &quot;: &quot; &lt;&lt; codes[i] &lt;&lt; &quot;\n&quot;;
+    }
+    int W = wpl(root, 0);
+    cout &lt;&lt; &quot;WPL=&quot; &lt;&lt; W &lt;&lt; &quot;\n&quot;;
+    cout &lt;&lt; &quot;prefix_ok=&quot; &lt;&lt; (is_prefix_free(codes) ? &quot;yes&quot; : &quot;no&quot;) &lt;&lt; &quot;\n&quot;;
+
+    free_tree(root);
+    return 0;
+}
+</code></pre>
+  </section>
+  <nav class="pager"><a href="forest.html">上一节<br>树、森林与二叉树的转换，树和森林的遍历</a><a href="dsu.html">下一节<br>并查集 - 基本操作，路径压缩，按秩合并</a></nav>
+</main>
+<script>window.LESSON_ANIM={"kind":"graph","frames":[{"note":"初始权值：C2 B3 A5 D7 E9，先取最小两棵","nodes":[{"id":"C","v":"C:2","x":0.1,"y":0.5},{"id":"B","v":"B:3","x":0.3,"y":0.5},{"id":"A","v":"A:5","x":0.5,"y":0.5},{"id":"D","v":"D:7","x":0.7,"y":0.5},{"id":"E","v":"E:9","x":0.9,"y":0.5}],"edges":[],"hl":["C","B"]},{"note":"合并 C+B → N1(5)，左 C 右 B","nodes":[{"id":"N1","v":"5","x":0.2,"y":0.25},{"id":"C","v":"C:2","x":0.1,"y":0.65},{"id":"B","v":"B:3","x":0.3,"y":0.65},{"id":"A","v":"A:5","x":0.5,"y":0.5},{"id":"D","v":"D:7","x":0.7,"y":0.5},{"id":"E","v":"E:9","x":0.9,"y":0.5}],"edges":[{"u":"N1","v":"C","w":"0","dir":true,"hl":true},{"u":"N1","v":"B","w":"1","dir":true,"hl":true}],"hl":["N1"]},{"note":"当前：A5 N1(5) D7 E9，再合并两个 5","nodes":[{"id":"N1","v":"5","x":0.25,"y":0.3},{"id":"C","v":"C","x":0.15,"y":0.7},{"id":"B","v":"B","x":0.35,"y":0.7},{"id":"A","v":"A:5","x":0.5,"y":0.3},{"id":"D","v":"D:7","x":0.7,"y":0.5},{"id":"E","v":"E:9","x":0.9,"y":0.5}],"edges":[{"u":"N1","v":"C","dir":true},{"u":"N1","v":"B","dir":true}],"hl":["A","N1"]},{"note":"合并 A+N1 → N2(10)，左 A 右 N1","nodes":[{"id":"N2","v":"10","x":0.3,"y":0.12},{"id":"A","v":"A:5","x":0.15,"y":0.4},{"id":"N1","v":"5","x":0.4,"y":0.4},{"id":"C","v":"C","x":0.3,"y":0.72},{"id":"B","v":"B","x":0.5,"y":0.72},{"id":"D","v":"D:7","x":0.7,"y":0.45},{"id":"E","v":"E:9","x":0.9,"y":0.45}],"edges":[{"u":"N2","v":"A","w":"0","dir":true,"hl":true},{"u":"N2","v":"N1","w":"1","dir":true,"hl":true},{"u":"N1","v":"C","dir":true},{"u":"N1","v":"B","dir":true}],"hl":["N2"]},{"note":"再合并 D7 与 E9 → N3(16)","nodes":[{"id":"N2","v":"10","x":0.25,"y":0.2},{"id":"A","v":"A","x":0.12,"y":0.5},{"id":"N1","v":"5","x":0.35,"y":0.5},{"id":"N3","v":"16","x":0.75,"y":0.2},{"id":"D","v":"D:7","x":0.65,"y":0.55},{"id":"E","v":"E:9","x":0.88,"y":0.55}],"edges":[{"u":"N2","v":"A","dir":true},{"u":"N2","v":"N1","dir":true},{"u":"N3","v":"D","w":"0","dir":true,"hl":true},{"u":"N3","v":"E","w":"1","dir":true,"hl":true}],"hl":["N3","D","E"]},{"note":"最后 N2(10)+N3(16) → 根 26","nodes":[{"id":"R","v":"26","x":0.5,"y":0.08},{"id":"N2","v":"10","x":0.25,"y":0.32},{"id":"N3","v":"16","x":0.75,"y":0.32},{"id":"A","v":"A","x":0.12,"y":0.58},{"id":"N1","v":"5","x":0.35,"y":0.58},{"id":"D","v":"D","x":0.65,"y":0.58},{"id":"E","v":"E","x":0.88,"y":0.58}],"edges":[{"u":"R","v":"N2","w":"0","dir":true,"hl":true},{"u":"R","v":"N3","w":"1","dir":true,"hl":true},{"u":"N2","v":"A","dir":true},{"u":"N2","v":"N1","dir":true},{"u":"N3","v":"D","dir":true},{"u":"N3","v":"E","dir":true}],"hl":["R"]},{"note":"完整哈夫曼树（结点≤7，叶在下层）","nodes":[{"id":"R","v":"26","x":0.5,"y":0.08},{"id":"N2","v":"10","x":0.28,"y":0.32},{"id":"N3","v":"16","x":0.72,"y":0.32},{"id":"A","v":"A","x":0.15,"y":0.58},{"id":"N1","v":"5","x":0.4,"y":0.58},{"id":"D","v":"D","x":0.62,"y":0.58},{"id":"E","v":"E","x":0.85,"y":0.58}],"edges":[{"u":"R","v":"N2","dir":true},{"u":"R","v":"N3","dir":true},{"u":"N2","v":"A","dir":true},{"u":"N2","v":"N1","dir":true},{"u":"N3","v":"D","dir":true},{"u":"N3","v":"E","dir":true}],"hl":[]},{"note":"编码：左 0 右 1。A 路径 00","nodes":[{"id":"R","v":"26","x":0.5,"y":0.08},{"id":"N2","v":"10","x":0.28,"y":0.32},{"id":"N3","v":"16","x":0.72,"y":0.32},{"id":"A","v":"A:00","x":0.15,"y":0.58},{"id":"N1","v":"5","x":0.4,"y":0.58},{"id":"D","v":"D","x":0.62,"y":0.58},{"id":"E","v":"E","x":0.85,"y":0.58}],"edges":[{"u":"R","v":"N2","w":"0","dir":true,"hl":true},{"u":"R","v":"N3","dir":true},{"u":"N2","v":"A","w":"0","dir":true,"hl":true},{"u":"N2","v":"N1","dir":true},{"u":"N3","v":"D","dir":true},{"u":"N3","v":"E","dir":true}],"hl":["A"]},{"note":"B=011，C=010（经 N1 的 0/1）","nodes":[{"id":"R","v":"26","x":0.5,"y":0.08},{"id":"N2","v":"10","x":0.28,"y":0.3},{"id":"N1","v":"5","x":0.4,"y":0.52},{"id":"A","v":"A:00","x":0.12,"y":0.52},{"id":"C","v":"C:010","x":0.3,"y":0.8},{"id":"B","v":"B:011","x":0.5,"y":0.8},{"id":"N3","v":"16","x":0.78,"y":0.3}],"edges":[{"u":"R","v":"N2","w":"0","dir":true},{"u":"R","v":"N3","dir":true},{"u":"N2","v":"A","dir":true},{"u":"N2","v":"N1","w":"1","dir":true,"hl":true},{"u":"N1","v":"C","w":"0","dir":true,"hl":true},{"u":"N1","v":"B","w":"1","dir":true,"hl":true}],"hl":["B","C"]},{"note":"D=10，E=11","nodes":[{"id":"R","v":"26","x":0.5,"y":0.08},{"id":"N2","v":"10","x":0.28,"y":0.32},{"id":"N3","v":"16","x":0.72,"y":0.32},{"id":"A","v":"A:00","x":0.15,"y":0.58},{"id":"D","v":"D:10","x":0.62,"y":0.58},{"id":"E","v":"E:11","x":0.88,"y":0.58},{"id":"N1","v":"BC","x":0.4,"y":0.58}],"edges":[{"u":"R","v":"N2","dir":true},{"u":"R","v":"N3","w":"1","dir":true,"hl":true},{"u":"N2","v":"A","dir":true},{"u":"N2","v":"N1","dir":true},{"u":"N3","v":"D","w":"0","dir":true,"hl":true},{"u":"N3","v":"E","w":"1","dir":true,"hl":true}],"hl":["D","E"]},{"note":"编码表：A:00 B:011 C:010 D:10 E:11","nodes":[{"id":"A","v":"A:00","x":0.1,"y":0.4},{"id":"B","v":"B:011","x":0.3,"y":0.4},{"id":"C","v":"C:010","x":0.5,"y":0.4},{"id":"D","v":"D:10","x":0.7,"y":0.4},{"id":"E","v":"E:11","x":0.9,"y":0.4}],"edges":[],"hl":["A","B","C","D","E"]},{"note":"前缀码：无一编码是另一前缀；WPL=57","nodes":[{"id":"A","v":"A:00","x":0.1,"y":0.4},{"id":"B","v":"B:011","x":0.3,"y":0.4},{"id":"C","v":"C:010","x":0.5,"y":0.4},{"id":"D","v":"D:10","x":0.7,"y":0.4},{"id":"E","v":"E:11","x":0.9,"y":0.4}],"edges":[],"hl":[]}]};</script>
+<script src="../assets/js/anim.js"></script>
+</body>
+</html>

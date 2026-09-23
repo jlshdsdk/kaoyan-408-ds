@@ -1,0 +1,145 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>树、森林与二叉树的转换，树和森林的遍历</title>
+<link rel="stylesheet" href="../assets/css/site.css">
+<link rel="icon" href="data:,">
+</head>
+<body>
+<header class="top">
+  <a class="brand" href="../index.html">408 数据结构</a>
+  <span class="muted">13 / 67</span>
+</header>
+<main class="wrap lesson">
+  <p class="crumb">树</p>
+  <h1>树、森林与二叉树的转换，树和森林的遍历</h1>
+  <p>左孩子右兄弟：森林与二叉树互转</p>
+  <div class="stage-wrap"><canvas id="stage" width="960" height="360"></canvas></div>
+  <p id="note"></p>
+  <div class="controls">
+    <button id="prev" type="button">上一步</button>
+    <button id="play" type="button">播放</button>
+    <button id="next" type="button">下一步</button>
+    <span id="step" class="muted"></span>
+    <span class="muted">方向键也可切换</span>
+  </div>
+  <section class="panel">
+    <h2>要点</h2>
+    <ul><li>每个结点：左指针挂长子，右指针挂邻弟</li><li>森林各树根用右链串成二叉树森林根</li><li>森林先根遍历对应二叉树前序</li><li>森林后根遍历对应二叉树中序</li></ul>
+    <p class="muted">转换 O(n)；先根/后根与对应二叉树遍历同为 O(n)</p>
+  </section>
+  <section class="panel">
+    <h2>完整 C++ 代码</h2>
+    <p><a href="../c/forest.cpp" download>下载 .cpp</a>
+    <button id="copy" type="button">复制</button></p>
+    <pre><code id="code">// Forest &lt;-&gt; binary tree via left-child / right-sibling.
+// Forest: T1=A(B,C), T2=D(E). Preorder/postorder map to BT preorder/inorder.
+#include &lt;iostream&gt;
+using namespace std;
+
+struct TNode {
+    char data;
+    TNode* child[4];
+    int nchild;
+    TNode(char d) : data(d), nchild(0) {
+        for (int i = 0; i &lt; 4; ++i) child[i] = nullptr;
+    }
+};
+
+struct BNode {
+    char data;
+    BNode* l;
+    BNode* r;
+    BNode(char d) : data(d), l(nullptr), r(nullptr) {}
+};
+
+BNode* tree_to_bt(TNode* t) {
+    if (!t) return nullptr;
+    BNode* b = new BNode(t-&gt;data);
+    if (t-&gt;nchild &gt; 0) b-&gt;l = tree_to_bt(t-&gt;child[0]);
+    BNode* sib = b-&gt;l;
+    for (int i = 1; i &lt; t-&gt;nchild; ++i) {
+        BNode* nb = tree_to_bt(t-&gt;child[i]);
+        if (!sib) b-&gt;l = nb;
+        else sib-&gt;r = nb;
+        sib = nb;
+    }
+    return b;
+}
+
+// Link roots of trees as right-sibling chain.
+BNode* forest_to_bt(TNode** roots, int n) {
+    if (n &lt;= 0 || !roots[0]) return nullptr;
+    BNode* first = tree_to_bt(roots[0]);
+    BNode* cur = first;
+    for (int i = 1; i &lt; n; ++i) {
+        cur-&gt;r = tree_to_bt(roots[i]);
+        cur = cur-&gt;r;
+    }
+    return first;
+}
+
+void preorder(BNode* p) {
+    if (!p) return;
+    cout &lt;&lt; p-&gt;data;
+    preorder(p-&gt;l);
+    preorder(p-&gt;r);
+}
+
+void inorder(BNode* p) {
+    if (!p) return;
+    inorder(p-&gt;l);
+    cout &lt;&lt; p-&gt;data;
+    inorder(p-&gt;r);
+}
+
+void free_tree(TNode* t) {
+    if (!t) return;
+    for (int i = 0; i &lt; t-&gt;nchild; ++i) free_tree(t-&gt;child[i]);
+    delete t;
+}
+
+void free_bt(BNode* p) {
+    if (!p) return;
+    free_bt(p-&gt;l);
+    free_bt(p-&gt;r);
+    delete p;
+}
+
+int main() {
+    TNode* A = new TNode(&#x27;A&#x27;);
+    TNode* B = new TNode(&#x27;B&#x27;);
+    TNode* C = new TNode(&#x27;C&#x27;);
+    A-&gt;child[A-&gt;nchild++] = B;
+    A-&gt;child[A-&gt;nchild++] = C;
+
+    TNode* D = new TNode(&#x27;D&#x27;);
+    TNode* E = new TNode(&#x27;E&#x27;);
+    D-&gt;child[D-&gt;nchild++] = E;
+
+    TNode* roots[2] = {A, D};
+    BNode* bt = forest_to_bt(roots, 2);
+
+    cout &lt;&lt; &quot;BT structure: A.l=B, B.r=C, A.r=D, D.l=E\n&quot;;
+    cout &lt;&lt; &quot;forest preorder = BT preorder: &quot;;
+    preorder(bt);
+    cout &lt;&lt; &quot;\n&quot;;
+    cout &lt;&lt; &quot;forest postorder = BT inorder: &quot;;
+    inorder(bt);
+    cout &lt;&lt; &quot;\n&quot;;
+
+    free_bt(bt);
+    free_tree(A);
+    free_tree(D);
+    return 0;
+}
+</code></pre>
+  </section>
+  <nav class="pager"><a href="tree-store.html">上一节<br>树的存储 - 双亲表示法, 孩子表示法, 孩子兄弟表示法</a><a href="huffman.html">下一节<br>哈夫曼树和哈夫曼编码</a></nav>
+</main>
+<script>window.LESSON_ANIM={"kind":"graph","frames":[{"note":"森林两棵树：T1=A(B,C)，T2=D(E)","nodes":[{"id":"A","v":"A","x":0.25,"y":0.2},{"id":"B","v":"B","x":0.12,"y":0.55},{"id":"C","v":"C","x":0.35,"y":0.55},{"id":"D","v":"D","x":0.7,"y":0.2},{"id":"E","v":"E","x":0.7,"y":0.55}],"edges":[{"u":"A","v":"B","dir":true},{"u":"A","v":"C","dir":true},{"u":"D","v":"E","dir":true}],"hl":[]},{"note":"左孩子右兄弟：A 的长子是 B","nodes":[{"id":"A","v":"A","x":0.3,"y":0.15},{"id":"B","v":"B","x":0.15,"y":0.45},{"id":"C","v":"C","x":0.4,"y":0.45},{"id":"D","v":"D","x":0.7,"y":0.15},{"id":"E","v":"E","x":0.7,"y":0.5}],"edges":[{"u":"A","v":"B","w":"L","dir":true,"hl":true},{"u":"A","v":"C","dir":true},{"u":"D","v":"E","dir":true}],"hl":["A","B"]},{"note":"B 的右兄弟是 C（原树同父邻弟）","nodes":[{"id":"A","v":"A","x":0.3,"y":0.15},{"id":"B","v":"B","x":0.15,"y":0.45},{"id":"C","v":"C","x":0.4,"y":0.45},{"id":"D","v":"D","x":0.7,"y":0.15},{"id":"E","v":"E","x":0.7,"y":0.5}],"edges":[{"u":"A","v":"B","w":"L","dir":true},{"u":"B","v":"C","w":"R","dir":true,"hl":true},{"u":"D","v":"E","dir":true}],"hl":["B","C"]},{"note":"D 的长子是 E","nodes":[{"id":"A","v":"A","x":0.3,"y":0.15},{"id":"B","v":"B","x":0.15,"y":0.45},{"id":"C","v":"C","x":0.4,"y":0.45},{"id":"D","v":"D","x":0.7,"y":0.15},{"id":"E","v":"E","x":0.7,"y":0.5}],"edges":[{"u":"A","v":"B","w":"L","dir":true},{"u":"B","v":"C","w":"R","dir":true},{"u":"D","v":"E","w":"L","dir":true,"hl":true}],"hl":["D","E"]},{"note":"森林根右链：A.next_sibling = D","nodes":[{"id":"A","v":"A","x":0.35,"y":0.15},{"id":"B","v":"B","x":0.2,"y":0.45},{"id":"C","v":"C","x":0.35,"y":0.7},{"id":"D","v":"D","x":0.65,"y":0.15},{"id":"E","v":"E","x":0.65,"y":0.5}],"edges":[{"u":"A","v":"B","w":"L","dir":true},{"u":"B","v":"C","w":"R","dir":true},{"u":"A","v":"D","w":"R","dir":true,"hl":true},{"u":"D","v":"E","w":"L","dir":true}],"hl":["A","D"]},{"note":"得到二叉树：A 左 B 右 D，B 右 C，D 左 E","nodes":[{"id":"A","v":"A","x":0.35,"y":0.12},{"id":"B","v":"B","x":0.18,"y":0.4},{"id":"C","v":"C","x":0.32,"y":0.7},{"id":"D","v":"D","x":0.65,"y":0.4},{"id":"E","v":"E","x":0.55,"y":0.72}],"edges":[{"u":"A","v":"B","w":"L","dir":true},{"u":"A","v":"D","w":"R","dir":true},{"u":"B","v":"C","w":"R","dir":true},{"u":"D","v":"E","w":"L","dir":true}],"hl":["A","B","C","D","E"]},{"note":"森林先根：A B C D E，对应 BT 前序","nodes":[{"id":"A","v":"A","x":0.35,"y":0.12},{"id":"B","v":"B","x":0.18,"y":0.4},{"id":"C","v":"C","x":0.32,"y":0.7},{"id":"D","v":"D","x":0.65,"y":0.4},{"id":"E","v":"E","x":0.55,"y":0.72}],"edges":[{"u":"A","v":"B","w":"L","dir":true},{"u":"A","v":"D","w":"R","dir":true},{"u":"B","v":"C","w":"R","dir":true},{"u":"D","v":"E","w":"L","dir":true}],"hl":["A"]},{"note":"前序继续：访问 B，再其右子 C","nodes":[{"id":"A","v":"A","x":0.35,"y":0.12},{"id":"B","v":"B","x":0.18,"y":0.4},{"id":"C","v":"C","x":0.32,"y":0.7},{"id":"D","v":"D","x":0.65,"y":0.4},{"id":"E","v":"E","x":0.55,"y":0.72}],"edges":[{"u":"A","v":"B","w":"L","dir":true},{"u":"A","v":"D","w":"R","dir":true},{"u":"B","v":"C","w":"R","dir":true},{"u":"D","v":"E","w":"L","dir":true}],"hl":["B","C"]},{"note":"前序收尾：D 再 E，得到 ABCDE","nodes":[{"id":"A","v":"A","x":0.35,"y":0.12},{"id":"B","v":"B","x":0.18,"y":0.4},{"id":"C","v":"C","x":0.32,"y":0.7},{"id":"D","v":"D","x":0.65,"y":0.4},{"id":"E","v":"E","x":0.55,"y":0.72}],"edges":[{"u":"A","v":"B","w":"L","dir":true},{"u":"A","v":"D","w":"R","dir":true},{"u":"B","v":"C","w":"R","dir":true},{"u":"D","v":"E","w":"L","dir":true}],"hl":["D","E"]},{"note":"森林后根：B C A E D，对应 BT 中序","nodes":[{"id":"A","v":"A","x":0.35,"y":0.12},{"id":"B","v":"B","x":0.18,"y":0.4},{"id":"C","v":"C","x":0.32,"y":0.7},{"id":"D","v":"D","x":0.65,"y":0.4},{"id":"E","v":"E","x":0.55,"y":0.72}],"edges":[{"u":"A","v":"B","w":"L","dir":true},{"u":"A","v":"D","w":"R","dir":true},{"u":"B","v":"C","w":"R","dir":true},{"u":"D","v":"E","w":"L","dir":true}],"hl":["B","C"]},{"note":"中序：先左子树 B-C，再 A","nodes":[{"id":"A","v":"A","x":0.35,"y":0.12},{"id":"B","v":"B","x":0.18,"y":0.4},{"id":"C","v":"C","x":0.32,"y":0.7},{"id":"D","v":"D","x":0.65,"y":0.4},{"id":"E","v":"E","x":0.55,"y":0.72}],"edges":[{"u":"A","v":"B","w":"L","dir":true},{"u":"A","v":"D","w":"R","dir":true},{"u":"B","v":"C","w":"R","dir":true},{"u":"D","v":"E","w":"L","dir":true}],"hl":["A"]},{"note":"中序右子：E 再 D，完整 BCAED","nodes":[{"id":"A","v":"A","x":0.35,"y":0.12},{"id":"B","v":"B","x":0.18,"y":0.4},{"id":"C","v":"C","x":0.32,"y":0.7},{"id":"D","v":"D","x":0.65,"y":0.4},{"id":"E","v":"E","x":0.55,"y":0.72}],"edges":[{"u":"A","v":"B","w":"L","dir":true},{"u":"A","v":"D","w":"R","dir":true},{"u":"B","v":"C","w":"R","dir":true},{"u":"D","v":"E","w":"L","dir":true}],"hl":["E","D"]}]};</script>
+<script src="../assets/js/anim.js"></script>
+</body>
+</html>

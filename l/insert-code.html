@@ -1,0 +1,84 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>直接插入排序代码(C/C++实现)</title>
+<link rel="stylesheet" href="../assets/css/site.css">
+<link rel="icon" href="data:,">
+</head>
+<body>
+<header class="top">
+  <a class="brand" href="../index.html">408 数据结构</a>
+  <span class="muted">47 / 67</span>
+</header>
+<main class="wrap lesson">
+  <p class="crumb">排序</p>
+  <h1>直接插入排序代码(C/C++实现)</h1>
+  <p>直接插入：移动腾位后写入 key</p>
+  <div class="stage-wrap"><canvas id="stage" width="960" height="360"></canvas></div>
+  <p id="note"></p>
+  <div class="controls">
+    <button id="prev" type="button">上一步</button>
+    <button id="play" type="button">播放</button>
+    <button id="next" type="button">下一步</button>
+    <span id="step" class="muted"></span>
+    <span class="muted">方向键也可切换</span>
+  </div>
+  <section class="panel">
+    <h2>要点</h2>
+    <ul><li>外层从下标 1 起，依次把 a[i] 插入左侧</li><li>内层 while 把大于 key 的元素右移一格</li><li>相等不右移，相对次序不变，故稳定</li><li>打印每趟后数组，便于对照动画</li></ul>
+    <p class="muted">时间最好 O(n)、最坏/平均 O(n^2)；空间 O(1)；稳定</p>
+  </section>
+  <section class="panel">
+    <h2>完整 C++ 代码</h2>
+    <p><a href="../c/insert-code.cpp" download>下载 .cpp</a>
+    <button id="copy" type="button">复制</button></p>
+    <pre><code id="code">// 直接插入排序代码（不带哨兵），打印每趟
+#include &lt;iostream&gt;
+using namespace std;
+
+void print_arr(const int a[], int n) {
+    for (int i = 0; i &lt; n; i++) {
+        if (i) cout &lt;&lt; &quot; &quot;;
+        cout &lt;&lt; a[i];
+    }
+    cout &lt;&lt; &quot;\n&quot;;
+}
+
+void insert_sort(int a[], int n) {
+    if (n &lt;= 0) {
+        cout &lt;&lt; &quot;error\n&quot;;
+        return;
+    }
+    cout &lt;&lt; &quot;init: &quot;;
+    print_arr(a, n);
+    for (int i = 1; i &lt; n; i++) {
+        int key = a[i];
+        int j = i - 1;
+        while (j &gt;= 0 &amp;&amp; a[j] &gt; key) {
+            a[j + 1] = a[j];
+            j--;
+        }
+        a[j + 1] = key;
+        cout &lt;&lt; &quot;pass &quot; &lt;&lt; i &lt;&lt; &quot;: &quot;;
+        print_arr(a, n);
+    }
+}
+
+int main() {
+    int a[] = {5, 2, 8, 1, 9, 3};
+    int n = 6;
+    insert_sort(a, n);
+    cout &lt;&lt; &quot;result: &quot;;
+    print_arr(a, n);
+    return 0;
+}
+</code></pre>
+  </section>
+  <nav class="pager"><a href="insert-idea.html">上一节<br>直接插入排序</a><a href="bininsert-idea.html">下一节<br>折半插入排序</a></nav>
+</main>
+<script>window.LESSON_ANIM={"kind":"bars","frames":[{"note":"init: 5 2 8 1 9 3","vals":[5,2,8,1,9,3],"hl":[]},{"note":"pass 1：key=2，5 右移后写入","vals":[5,2,8,1,9,3],"hl":[0,1]},{"note":"pass 1 后：2 5 8 1 9 3","vals":[2,5,8,1,9,3],"hl":[0],"done":[0,1]},{"note":"pass 2：key=8，无需移动","vals":[2,5,8,1,9,3],"hl":[2],"done":[0,1]},{"note":"pass 2 后：2 5 8 1 9 3","vals":[2,5,8,1,9,3],"hl":[],"done":[0,1,2]},{"note":"pass 3：key=1，前面整体右移","vals":[2,5,8,1,9,3],"hl":[3],"done":[0,1,2]},{"note":"pass 3 后：1 2 5 8 9 3","vals":[1,2,5,8,9,3],"hl":[0],"done":[0,1,2,3]},{"note":"pass 4：key=9，插在末尾","vals":[1,2,5,8,9,3],"hl":[4],"done":[0,1,2,3]},{"note":"pass 4 后：1 2 5 8 9 3","vals":[1,2,5,8,9,3],"hl":[],"done":[0,1,2,3,4]},{"note":"pass 5：key=3，插到下标 2","vals":[1,2,5,8,9,3],"hl":[5],"done":[0,1,2,3,4]},{"note":"pass 5 后：1 2 3 5 8 9","vals":[1,2,3,5,8,9],"hl":[2],"done":[0,1,2,3,4,5]},{"note":"result: 1 2 3 5 8 9","vals":[1,2,3,5,8,9],"hl":[],"done":[0,1,2,3,4,5]}]};</script>
+<script src="../assets/js/anim.js"></script>
+</body>
+</html>

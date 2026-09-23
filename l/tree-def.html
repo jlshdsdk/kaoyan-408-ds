@@ -1,0 +1,147 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>树 - 定义, 术语, 性质</title>
+<link rel="stylesheet" href="../assets/css/site.css">
+<link rel="icon" href="data:,">
+</head>
+<body>
+<header class="top">
+  <a class="brand" href="../index.html">408 数据结构</a>
+  <span class="muted">5 / 67</span>
+</header>
+<main class="wrap lesson">
+  <p class="crumb">树</p>
+  <h1>树 - 定义, 术语, 性质</h1>
+  <p>普通树的术语与基本性质</p>
+  <div class="stage-wrap"><canvas id="stage" width="960" height="360"></canvas></div>
+  <p id="note"></p>
+  <div class="controls">
+    <button id="prev" type="button">上一步</button>
+    <button id="play" type="button">播放</button>
+    <button id="next" type="button">下一步</button>
+    <span id="step" class="muted"></span>
+    <span class="muted">方向键也可切换</span>
+  </div>
+  <section class="panel">
+    <h2>要点</h2>
+    <ul><li>树是n个结点的有限集，可空；非空必有唯一根</li><li>度=孩子数；度为0的是叶子；根的深度常记为0</li><li>结点深度是到根边数；树高是结点深度最大值</li><li>去掉根后剩下若干棵树，合称森林</li><li>边数等于度数和；结点数=度数和+1</li></ul>
+    <p class="muted">术语查看 O(1)；遍历统计度数/高度 O(n)，空间 O(h)</p>
+  </section>
+  <section class="panel">
+    <h2>完整 C++ 代码</h2>
+    <p><a href="../c/tree-def.cpp" download>下载 .cpp</a>
+    <button id="copy" type="button">复制</button></p>
+    <pre><code id="code">// 树 - 定义、术语、性质（普通树，非二叉树）
+#include &lt;iostream&gt;
+#include &lt;vector&gt;
+using namespace std;
+
+struct Node {
+    char data;
+    vector&lt;Node*&gt; kids;
+    explicit Node(char c) : data(c) {}
+};
+
+int degree(const Node* t) {
+    return t ? (int)t-&gt;kids.size() : 0;
+}
+
+int depth_of(const Node* t, char target, int d) {
+    if (!t) return -1;
+    if (t-&gt;data == target) return d;
+    for (Node* k : t-&gt;kids) {
+        int r = depth_of(k, target, d + 1);
+        if (r &gt;= 0) return r;
+    }
+    return -1;
+}
+
+int height(const Node* t) {
+    if (!t) return -1;
+    if (t-&gt;kids.empty()) return 0;
+    int best = 0;
+    for (Node* k : t-&gt;kids) {
+        int h = height(k);
+        if (h + 1 &gt; best) best = h + 1;
+    }
+    return best;
+}
+
+void collect_leaves(const Node* t, vector&lt;char&gt;&amp; out) {
+    if (!t) return;
+    if (t-&gt;kids.empty()) {
+        out.push_back(t-&gt;data);
+        return;
+    }
+    for (Node* k : t-&gt;kids) collect_leaves(k, out);
+}
+
+int count_nodes(const Node* t) {
+    if (!t) return 0;
+    int n = 1;
+    for (Node* k : t-&gt;kids) n += count_nodes(k);
+    return n;
+}
+
+int sum_degrees(const Node* t) {
+    if (!t) return 0;
+    int s = degree(t);
+    for (Node* k : t-&gt;kids) s += sum_degrees(k);
+    return s;
+}
+
+void free_tree(Node* t) {
+    if (!t) return;
+    for (Node* k : t-&gt;kids) free_tree(k);
+    delete t;
+}
+
+int main() {
+    // A has B C D; B has E F
+    Node* A = new Node(&#x27;A&#x27;);
+    Node* B = new Node(&#x27;B&#x27;);
+    Node* C = new Node(&#x27;C&#x27;);
+    Node* D = new Node(&#x27;D&#x27;);
+    Node* E = new Node(&#x27;E&#x27;);
+    Node* F = new Node(&#x27;F&#x27;);
+    A-&gt;kids = {B, C, D};
+    B-&gt;kids = {E, F};
+
+    cout &lt;&lt; &quot;root=&quot; &lt;&lt; A-&gt;data &lt;&lt; &quot;\n&quot;;
+    cout &lt;&lt; &quot;deg(A)=&quot; &lt;&lt; degree(A) &lt;&lt; &quot; deg(B)=&quot; &lt;&lt; degree(B)
+         &lt;&lt; &quot; deg(C)=&quot; &lt;&lt; degree(C) &lt;&lt; &quot;\n&quot;;
+
+    vector&lt;char&gt; leaves;
+    collect_leaves(A, leaves);
+    cout &lt;&lt; &quot;leaves=&quot;;
+    for (char c : leaves) cout &lt;&lt; c;
+    cout &lt;&lt; &quot;\n&quot;;
+
+    cout &lt;&lt; &quot;depth(E)=&quot; &lt;&lt; depth_of(A, &#x27;E&#x27;, 0) &lt;&lt; &quot;\n&quot;;
+    cout &lt;&lt; &quot;height(tree)=&quot; &lt;&lt; height(A) &lt;&lt; &quot;\n&quot;;
+
+    int n = count_nodes(A);
+    int sd = sum_degrees(A);
+    // n = sum(degree) + 1  (edges = sum degrees, nodes = edges + 1)
+    cout &lt;&lt; &quot;nodes=&quot; &lt;&lt; n &lt;&lt; &quot; sum_deg=&quot; &lt;&lt; sd
+         &lt;&lt; &quot; check_n=&quot; &lt;&lt; (sd + 1) &lt;&lt; &quot;\n&quot;;
+
+    // remove root -&gt; forest of trees rooted at B, C, D
+    cout &lt;&lt; &quot;forest_roots=&quot;;
+    for (Node* k : A-&gt;kids) cout &lt;&lt; k-&gt;data;
+    cout &lt;&lt; &quot;\n&quot;;
+
+    free_tree(A);
+    return 0;
+}
+</code></pre>
+  </section>
+  <nav class="pager"><a href="slist-edit.html">上一节<br>线性表 - 单链表(下) - 查找, 插入, 删除</a><a href="btree-def.html">下一节<br>二叉树&amp;完全二叉树 - 定义, 性质</a></nav>
+</main>
+<script>window.LESSON_ANIM={"kind":"graph","frames":[{"note":"普通树：A 有孩子 B C D，B 再有 E F。","nodes":[{"id":"A","v":"A","x":0.5,"y":0.12},{"id":"B","v":"B","x":0.22,"y":0.42},{"id":"C","v":"C","x":0.5,"y":0.42},{"id":"D","v":"D","x":0.78,"y":0.42},{"id":"E","v":"E","x":0.12,"y":0.78},{"id":"F","v":"F","x":0.32,"y":0.78}],"edges":[{"u":"A","v":"B"},{"u":"A","v":"C"},{"u":"A","v":"D"},{"u":"B","v":"E"},{"u":"B","v":"F"}],"hl":[]},{"note":"根结点：整棵树的入口，这里是 A。","nodes":[{"id":"A","v":"A","x":0.5,"y":0.12},{"id":"B","v":"B","x":0.22,"y":0.42},{"id":"C","v":"C","x":0.5,"y":0.42},{"id":"D","v":"D","x":0.78,"y":0.42},{"id":"E","v":"E","x":0.12,"y":0.78},{"id":"F","v":"F","x":0.32,"y":0.78}],"edges":[{"u":"A","v":"B"},{"u":"A","v":"C"},{"u":"A","v":"D"},{"u":"B","v":"E"},{"u":"B","v":"F"}],"hl":["A"]},{"note":"度：孩子个数。A 的度=3，B 的度=2。","nodes":[{"id":"A","v":"A","x":0.5,"y":0.12},{"id":"B","v":"B","x":0.22,"y":0.42},{"id":"C","v":"C","x":0.5,"y":0.42},{"id":"D","v":"D","x":0.78,"y":0.42},{"id":"E","v":"E","x":0.12,"y":0.78},{"id":"F","v":"F","x":0.32,"y":0.78}],"edges":[{"u":"A","v":"B","hl":true},{"u":"A","v":"C","hl":true},{"u":"A","v":"D","hl":true},{"u":"B","v":"E"},{"u":"B","v":"F"}],"hl":["A","B"]},{"note":"叶子：度为 0。点亮 C D E F。","nodes":[{"id":"A","v":"A","x":0.5,"y":0.12},{"id":"B","v":"B","x":0.22,"y":0.42},{"id":"C","v":"C","x":0.5,"y":0.42},{"id":"D","v":"D","x":0.78,"y":0.42},{"id":"E","v":"E","x":0.12,"y":0.78},{"id":"F","v":"F","x":0.32,"y":0.78}],"edges":[{"u":"A","v":"B"},{"u":"A","v":"C"},{"u":"A","v":"D"},{"u":"B","v":"E"},{"u":"B","v":"F"}],"hl":["C","D","E","F"]},{"note":"深度：根到该结点的边数。E 深度=2。","nodes":[{"id":"A","v":"A","x":0.5,"y":0.12},{"id":"B","v":"B","x":0.22,"y":0.42},{"id":"C","v":"C","x":0.5,"y":0.42},{"id":"D","v":"D","x":0.78,"y":0.42},{"id":"E","v":"E","x":0.12,"y":0.78},{"id":"F","v":"F","x":0.32,"y":0.78}],"edges":[{"u":"A","v":"B","hl":true},{"u":"A","v":"C"},{"u":"A","v":"D"},{"u":"B","v":"E","hl":true},{"u":"B","v":"F"}],"hl":["A","B","E"]},{"note":"树高：结点深度的最大值，这里高度=2。","nodes":[{"id":"A","v":"A","x":0.5,"y":0.12},{"id":"B","v":"B","x":0.22,"y":0.42},{"id":"C","v":"C","x":0.5,"y":0.42},{"id":"D","v":"D","x":0.78,"y":0.42},{"id":"E","v":"E","x":0.12,"y":0.78},{"id":"F","v":"F","x":0.32,"y":0.78}],"edges":[{"u":"A","v":"B"},{"u":"A","v":"C"},{"u":"A","v":"D"},{"u":"B","v":"E","hl":true},{"u":"B","v":"F","hl":true}],"hl":["E","F"]},{"note":"性质：边数=各结点度数之和，这里边=5。","nodes":[{"id":"A","v":"A","x":0.5,"y":0.12},{"id":"B","v":"B","x":0.22,"y":0.42},{"id":"C","v":"C","x":0.5,"y":0.42},{"id":"D","v":"D","x":0.78,"y":0.42},{"id":"E","v":"E","x":0.12,"y":0.78},{"id":"F","v":"F","x":0.32,"y":0.78}],"edges":[{"u":"A","v":"B","hl":true},{"u":"A","v":"C","hl":true},{"u":"A","v":"D","hl":true},{"u":"B","v":"E","hl":true},{"u":"B","v":"F","hl":true}],"hl":[]},{"note":"因此结点数 n = 度数和 + 1，这里 6=5+1。","nodes":[{"id":"A","v":"A","x":0.5,"y":0.12},{"id":"B","v":"B","x":0.22,"y":0.42},{"id":"C","v":"C","x":0.5,"y":0.42},{"id":"D","v":"D","x":0.78,"y":0.42},{"id":"E","v":"E","x":0.12,"y":0.78},{"id":"F","v":"F","x":0.32,"y":0.78}],"edges":[{"u":"A","v":"B"},{"u":"A","v":"C"},{"u":"A","v":"D"},{"u":"B","v":"E"},{"u":"B","v":"F"}],"hl":["A","B","C","D","E","F"]},{"note":"去掉根 A：剩下以 B、C、D 为根的森林。","nodes":[{"id":"B","v":"B","x":0.22,"y":0.3},{"id":"C","v":"C","x":0.5,"y":0.3},{"id":"D","v":"D","x":0.78,"y":0.3},{"id":"E","v":"E","x":0.12,"y":0.7},{"id":"F","v":"F","x":0.32,"y":0.7}],"edges":[{"u":"B","v":"E"},{"u":"B","v":"F"}],"hl":["B","C","D"]},{"note":"小结：结点、度、叶子、深度、高度、森林。","nodes":[{"id":"A","v":"A","x":0.5,"y":0.12},{"id":"B","v":"B","x":0.22,"y":0.42},{"id":"C","v":"C","x":0.5,"y":0.42},{"id":"D","v":"D","x":0.78,"y":0.42},{"id":"E","v":"E","x":0.12,"y":0.78},{"id":"F","v":"F","x":0.32,"y":0.78}],"edges":[{"u":"A","v":"B"},{"u":"A","v":"C"},{"u":"A","v":"D"},{"u":"B","v":"E"},{"u":"B","v":"F"}],"hl":["A"]}]};</script>
+<script src="../assets/js/anim.js"></script>
+</body>
+</html>

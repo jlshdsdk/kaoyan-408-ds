@@ -1,0 +1,82 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>直接插入排序</title>
+<link rel="stylesheet" href="../assets/css/site.css">
+<link rel="icon" href="data:,">
+</head>
+<body>
+<header class="top">
+  <a class="brand" href="../index.html">408 数据结构</a>
+  <span class="muted">46 / 67</span>
+</header>
+<main class="wrap lesson">
+  <p class="crumb">排序</p>
+  <h1>直接插入排序</h1>
+  <p>把待插元素插入前面已排序区</p>
+  <div class="stage-wrap"><canvas id="stage" width="960" height="360"></canvas></div>
+  <p id="note"></p>
+  <div class="controls">
+    <button id="prev" type="button">上一步</button>
+    <button id="play" type="button">播放</button>
+    <button id="next" type="button">下一步</button>
+    <span id="step" class="muted"></span>
+    <span class="muted">方向键也可切换</span>
+  </div>
+  <section class="panel">
+    <h2>要点</h2>
+    <ul><li>左侧已排好，右侧取一个插入合适位置</li><li>插入时边比较边把大的元素右移腾位</li><li>相等时不越过，所以是稳定排序</li><li>按趟推进：每趟多一个元素进入有序区</li></ul>
+    <p class="muted">时间最好 O(n)、最坏/平均 O(n^2)；空间 O(1)；稳定</p>
+  </section>
+  <section class="panel">
+    <h2>完整 C++ 代码</h2>
+    <p><a href="../c/insert-idea.cpp" download>下载 .cpp</a>
+    <button id="copy" type="button">复制</button></p>
+    <pre><code id="code">// 直接插入排序：把待插元素插入前面已排序区
+#include &lt;iostream&gt;
+using namespace std;
+
+void print_pass(const int a[], int n, int pass) {
+    cout &lt;&lt; &quot;pass &quot; &lt;&lt; pass &lt;&lt; &quot;:&quot;;
+    for (int i = 0; i &lt; n; i++) cout &lt;&lt; &quot; &quot; &lt;&lt; a[i];
+    cout &lt;&lt; &quot;\n&quot;;
+}
+
+// 直接插入排序，按趟打印
+void insert_sort(int a[], int n) {
+    if (n &lt;= 0) {
+        cout &lt;&lt; &quot;error\n&quot;;
+        return;
+    }
+    print_pass(a, n, 0);
+    for (int i = 1; i &lt; n; i++) {
+        int key = a[i];
+        int j = i - 1;
+        while (j &gt;= 0 &amp;&amp; a[j] &gt; key) {
+            a[j + 1] = a[j];
+            j--;
+        }
+        a[j + 1] = key;
+        print_pass(a, n, i);
+    }
+}
+
+int main() {
+    int a[] = {5, 2, 8, 1, 9, 3};
+    int n = 6;
+    insert_sort(a, n);
+    cout &lt;&lt; &quot;result:&quot;;
+    for (int i = 0; i &lt; n; i++) cout &lt;&lt; &quot; &quot; &lt;&lt; a[i];
+    cout &lt;&lt; &quot;\n&quot;;
+    return 0;
+}
+</code></pre>
+  </section>
+  <nav class="pager"><a href="hash.html">上一节<br>散列表(哈希表) - 散列函数, 冲突处理, 平均查找长度(ASL)</a><a href="insert-code.html">下一节<br>直接插入排序代码(C/C++实现)</a></nav>
+</main>
+<script>window.LESSON_ANIM={"kind":"bars","frames":[{"note":"初始：5 2 8 1 9 3，左侧暂无序","vals":[5,2,8,1,9,3],"hl":[]},{"note":"第1趟：取出待插元素 2","vals":[5,2,8,1,9,3],"hl":[1]},{"note":"2 插到 5 前，有序区扩到前 2 个","vals":[2,5,8,1,9,3],"hl":[0],"done":[0,1]},{"note":"第2趟：取出待插元素 8","vals":[2,5,8,1,9,3],"hl":[2],"done":[0,1]},{"note":"8 已大于有序区末尾，位置不变","vals":[2,5,8,1,9,3],"hl":[2],"done":[0,1,2]},{"note":"第3趟：取出待插元素 1","vals":[2,5,8,1,9,3],"hl":[3],"done":[0,1,2]},{"note":"1 插到最前，有序区前 4 个","vals":[1,2,5,8,9,3],"hl":[0],"done":[0,1,2,3]},{"note":"第4趟：取出待插元素 9","vals":[1,2,5,8,9,3],"hl":[4],"done":[0,1,2,3]},{"note":"9 插在 8 后，有序区前 5 个","vals":[1,2,5,8,9,3],"hl":[4],"done":[0,1,2,3,4]},{"note":"第5趟：取出待插元素 3","vals":[1,2,5,8,9,3],"hl":[5],"done":[0,1,2,3,4]},{"note":"3 插到 2 与 5 之间","vals":[1,2,3,5,8,9],"hl":[2],"done":[0,1,2,3,4,5]},{"note":"全部有序：1 2 3 5 8 9","vals":[1,2,3,5,8,9],"hl":[],"done":[0,1,2,3,4,5]}]};</script>
+<script src="../assets/js/anim.js"></script>
+</body>
+</html>

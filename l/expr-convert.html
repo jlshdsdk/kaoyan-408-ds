@@ -1,0 +1,212 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>秒杀系列-中缀表达式转前后缀表达式</title>
+<link rel="stylesheet" href="../assets/css/site.css">
+<link rel="icon" href="data:,">
+</head>
+<body>
+<header class="top">
+  <a class="brand" href="../index.html">408 数据结构</a>
+  <span class="muted">66 / 67</span>
+</header>
+<main class="wrap lesson">
+  <p class="crumb">常见题型</p>
+  <h1>秒杀系列-中缀表达式转前后缀表达式</h1>
+  <p>中缀靠栈比优先级，可得到前缀或后缀</p>
+  <div class="stage-wrap"><canvas id="stage" width="960" height="360"></canvas></div>
+  <p id="note"></p>
+  <div class="controls">
+    <button id="prev" type="button">上一步</button>
+    <button id="play" type="button">播放</button>
+    <button id="next" type="button">下一步</button>
+    <span id="step" class="muted"></span>
+    <span class="muted">方向键也可切换</span>
+  </div>
+  <section class="panel">
+    <h2>要点</h2>
+    <ul><li>数字直接输出；运算符先入栈再择机弹出</li><li>栈顶优先级不低于当前时，先弹栈再入栈</li><li>遇左括号入栈，遇右括号弹到左括号</li><li>转前缀可反转括号对调后按后缀思路再反转</li></ul>
+    <p class="muted">时间 O(n)，空间 O(n)；n 为表达式长度</p>
+  </section>
+  <section class="panel">
+    <h2>完整 C++ 代码</h2>
+    <p><a href="../c/expr-convert.cpp" download>下载 .cpp</a>
+    <button id="copy" type="button">复制</button></p>
+    <pre><code id="code">// 中缀转后缀 / 前缀（运算符优先级 + 括号）
+#include &lt;iostream&gt;
+#include &lt;string&gt;
+#include &lt;vector&gt;
+using namespace std;
+
+const int MAXS = 128;
+
+int prec(char op) {
+    if (op == &#x27;+&#x27; || op == &#x27;-&#x27;) return 1;
+    if (op == &#x27;*&#x27; || op == &#x27;/&#x27;) return 2;
+    return 0;
+}
+
+bool isOp(char c) {
+    return c == &#x27;+&#x27; || c == &#x27;-&#x27; || c == &#x27;*&#x27; || c == &#x27;/&#x27;;
+}
+
+// 中缀转后缀（调度场算法）
+bool infixToPostfix(const string&amp; in, string&amp; out) {
+    char st[MAXS];
+    int top = -1;
+    out.clear();
+    for (size_t i = 0; i &lt; in.size(); i++) {
+        char c = in[i];
+        if (c == &#x27; &#x27;) continue;
+        if (c &gt;= &#x27;0&#x27; &amp;&amp; c &lt;= &#x27;9&#x27;) {
+            if (!out.empty() &amp;&amp; out.back() != &#x27; &#x27;) out.push_back(&#x27; &#x27;);
+            out.push_back(c);
+        } else if (c == &#x27;(&#x27;) {
+            if (top &gt;= MAXS - 1) {
+                cout &lt;&lt; &quot;error\n&quot;;
+                return false;
+            }
+            st[++top] = c;
+        } else if (c == &#x27;)&#x27;) {
+            while (top &gt;= 0 &amp;&amp; st[top] != &#x27;(&#x27;) {
+                out.push_back(&#x27; &#x27;);
+                out.push_back(st[top--]);
+            }
+            if (top &lt; 0) {
+                cout &lt;&lt; &quot;error\n&quot;;
+                return false;
+            }
+            top--; // pop &#x27;(&#x27;
+        } else if (isOp(c)) {
+            while (top &gt;= 0 &amp;&amp; isOp(st[top]) &amp;&amp; prec(st[top]) &gt;= prec(c)) {
+                out.push_back(&#x27; &#x27;);
+                out.push_back(st[top--]);
+            }
+            if (top &gt;= MAXS - 1) {
+                cout &lt;&lt; &quot;error\n&quot;;
+                return false;
+            }
+            st[++top] = c;
+        } else {
+            cout &lt;&lt; &quot;error\n&quot;;
+            return false;
+        }
+    }
+    while (top &gt;= 0) {
+        if (st[top] == &#x27;(&#x27;) {
+            cout &lt;&lt; &quot;error\n&quot;;
+            return false;
+        }
+        out.push_back(&#x27; &#x27;);
+        out.push_back(st[top--]);
+    }
+    // trim leading space
+    if (!out.empty() &amp;&amp; out[0] == &#x27; &#x27;) out.erase(0, 1);
+    return true;
+}
+
+// 中缀转前缀：反转、括号对调、按后缀规则、再反转
+string reverseSwapParen(const string&amp; s) {
+    string r;
+    for (int i = (int)s.size() - 1; i &gt;= 0; i--) {
+        char c = s[i];
+        if (c == &#x27;(&#x27;) r.push_back(&#x27;)&#x27;);
+        else if (c == &#x27;)&#x27;) r.push_back(&#x27;(&#x27;);
+        else r.push_back(c);
+    }
+    return r;
+}
+
+bool infixToPrefix(const string&amp; in, string&amp; out) {
+    string rev = reverseSwapParen(in);
+    string post;
+    // 前缀转换时同级改为严格大于，保证结合性正确
+    // 这里用改写后的调度：遇到同级不弹出（用临时改 prec 比较）
+    char st[MAXS];
+    int top = -1;
+    post.clear();
+    for (size_t i = 0; i &lt; rev.size(); i++) {
+        char c = rev[i];
+        if (c == &#x27; &#x27;) continue;
+        if (c &gt;= &#x27;0&#x27; &amp;&amp; c &lt;= &#x27;9&#x27;) {
+            if (!post.empty() &amp;&amp; post.back() != &#x27; &#x27;) post.push_back(&#x27; &#x27;);
+            post.push_back(c);
+        } else if (c == &#x27;(&#x27;) {
+            if (top &gt;= MAXS - 1) {
+                cout &lt;&lt; &quot;error\n&quot;;
+                return false;
+            }
+            st[++top] = c;
+        } else if (c == &#x27;)&#x27;) {
+            while (top &gt;= 0 &amp;&amp; st[top] != &#x27;(&#x27;) {
+                post.push_back(&#x27; &#x27;);
+                post.push_back(st[top--]);
+            }
+            if (top &lt; 0) {
+                cout &lt;&lt; &quot;error\n&quot;;
+                return false;
+            }
+            top--;
+        } else if (isOp(c)) {
+            while (top &gt;= 0 &amp;&amp; isOp(st[top]) &amp;&amp; prec(st[top]) &gt; prec(c)) {
+                post.push_back(&#x27; &#x27;);
+                post.push_back(st[top--]);
+            }
+            if (top &gt;= MAXS - 1) {
+                cout &lt;&lt; &quot;error\n&quot;;
+                return false;
+            }
+            st[++top] = c;
+        } else {
+            cout &lt;&lt; &quot;error\n&quot;;
+            return false;
+        }
+    }
+    while (top &gt;= 0) {
+        if (st[top] == &#x27;(&#x27;) {
+            cout &lt;&lt; &quot;error\n&quot;;
+            return false;
+        }
+        post.push_back(&#x27; &#x27;);
+        post.push_back(st[top--]);
+    }
+    if (!post.empty() &amp;&amp; post[0] == &#x27; &#x27;) post.erase(0, 1);
+
+    // 反转 token
+    vector&lt;string&gt; toks;
+    string cur;
+    for (size_t i = 0; i &lt;= post.size(); i++) {
+        if (i == post.size() || post[i] == &#x27; &#x27;) {
+            if (!cur.empty()) toks.push_back(cur);
+            cur.clear();
+        } else cur.push_back(post[i]);
+    }
+    out.clear();
+    for (int i = (int)toks.size() - 1; i &gt;= 0; i--) {
+        if (!out.empty()) out.push_back(&#x27; &#x27;);
+        out += toks[i];
+    }
+    return true;
+}
+
+int main() {
+    string in = &quot;(2+3)*4&quot;;
+    string post, pre;
+    if (infixToPostfix(in, post)) cout &lt;&lt; &quot;postfix: &quot; &lt;&lt; post &lt;&lt; &quot;\n&quot;;
+    if (infixToPrefix(in, pre)) cout &lt;&lt; &quot;prefix: &quot; &lt;&lt; pre &lt;&lt; &quot;\n&quot;;
+
+    string bad = &quot;(2+3&quot;;
+    string tmp;
+    if (!infixToPostfix(bad, tmp)) { /* unmatched */ }
+    return 0;
+}
+</code></pre>
+  </section>
+  <nav class="pager"><a href="expr-eval.html">上一节<br>秒杀系列-前后缀表达式计算</a><a href="order-infer.html">下一节<br>二叉树-前序中序推后序, 后序中序推前序</a></nav>
+</main>
+<script>window.LESSON_ANIM={"kind":"stack","frames":[{"note":"中缀 (2+3)*4 转后缀，栈空","cells":[],"top":-1,"out":""},{"note":"读到 (，左括号入栈","cells":["("],"top":0,"out":""},{"note":"读到 2，数字直接输出","cells":["("],"top":0,"out":"2"},{"note":"读到 +，运算符入栈","cells":["(","+"],"top":1,"out":"2"},{"note":"读到 3，数字输出","cells":["(","+"],"top":1,"out":"2 3"},{"note":"读到 )，弹出 +，丢掉 (","cells":[],"top":-1,"out":"2 3 +"},{"note":"读到 *，运算符入栈","cells":["*"],"top":0,"out":"2 3 +"},{"note":"读到 4，数字输出","cells":["*"],"top":0,"out":"2 3 + 4"},{"note":"结束，弹出 *，得后缀 2 3 + 4 *","cells":[],"top":-1,"out":"2 3 + 4 *"},{"note":"同一中缀转前缀：* + 2 3 4","cells":[],"top":-1,"out":"prefix: * + 2 3 4"},{"note":"核对：后缀求值与前缀求值都应是 20","cells":["20"],"top":0,"out":"both=20"}]};</script>
+<script src="../assets/js/anim.js"></script>
+</body>
+</html>

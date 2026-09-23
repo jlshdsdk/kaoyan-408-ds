@@ -1,0 +1,128 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>线索二叉树(上) - 概念, 先序/中序/后序线索化</title>
+<link rel="stylesheet" href="../assets/css/site.css">
+<link rel="icon" href="data:,">
+</head>
+<body>
+<header class="top">
+  <a class="brand" href="../index.html">408 数据结构</a>
+  <span class="muted">10 / 67</span>
+</header>
+<main class="wrap lesson">
+  <p class="crumb">树</p>
+  <h1>线索二叉树(上) - 概念, 先序/中序/后序线索化</h1>
+  <p>空指针改线索，记下前驱后继</p>
+  <div class="stage-wrap"><canvas id="stage" width="960" height="360"></canvas></div>
+  <p id="note"></p>
+  <div class="controls">
+    <button id="prev" type="button">上一步</button>
+    <button id="play" type="button">播放</button>
+    <button id="next" type="button">下一步</button>
+    <span id="step" class="muted"></span>
+    <span class="muted">方向键也可切换</span>
+  </div>
+  <section class="panel">
+    <h2>要点</h2>
+    <ul><li>线索：把空的左右指针改指中序前驱/后继</li><li>ltag/rtag=0 表示孩子，=1 表示线索</li><li>先序/中序/后序都能线索化，考试常考中序</li><li>中序线索便于找前驱后继并线性遍历</li><li>线索边占用原空指针，不再表示结构边</li></ul>
+    <p class="muted">线索化一遍中序 O(n) 时间，额外每位 1bit 标记；遍历 O(n)</p>
+  </section>
+  <section class="panel">
+    <h2>完整 C++ 代码</h2>
+    <p><a href="../c/thread-def.cpp" download>下载 .cpp</a>
+    <button id="copy" type="button">复制</button></p>
+    <pre><code id="code">// 线索二叉树（上）：概念与中序线索化（ltag/rtag）
+#include &lt;iostream&gt;
+using namespace std;
+
+struct Node {
+    char data;
+    Node *l, *r;
+    int ltag; // 0: child, 1: thread
+    int rtag;
+    explicit Node(char c)
+        : data(c), l(nullptr), r(nullptr), ltag(0), rtag(0) {}
+};
+
+Node* pre = nullptr;
+
+void in_thread(Node* t) {
+    if (!t) return;
+    in_thread(t-&gt;l);
+    if (!t-&gt;l) {
+        t-&gt;ltag = 1;
+        t-&gt;l = pre;
+    }
+    if (pre &amp;&amp; !pre-&gt;r) {
+        pre-&gt;rtag = 1;
+        pre-&gt;r = t;
+    }
+    pre = t;
+    in_thread(t-&gt;r);
+}
+
+void free_tree(Node* t) {
+    if (!t) return;
+    if (t-&gt;ltag == 0) free_tree(t-&gt;l);
+    if (t-&gt;rtag == 0) free_tree(t-&gt;r);
+    delete t;
+}
+
+void print_tags(Node* t) {
+    if (!t) return;
+    if (t-&gt;ltag == 0) print_tags(t-&gt;l);
+    cout &lt;&lt; t-&gt;data
+         &lt;&lt; &quot; ltag=&quot; &lt;&lt; t-&gt;ltag
+         &lt;&lt; &quot; rtag=&quot; &lt;&lt; t-&gt;rtag;
+    if (t-&gt;ltag == 1) {
+        cout &lt;&lt; &quot; Lthr=&quot;;
+        if (t-&gt;l) cout &lt;&lt; t-&gt;l-&gt;data;
+        else cout &lt;&lt; &quot;#&quot;;
+    }
+    if (t-&gt;rtag == 1) {
+        cout &lt;&lt; &quot; Rthr=&quot;;
+        if (t-&gt;r) cout &lt;&lt; t-&gt;r-&gt;data;
+        else cout &lt;&lt; &quot;#&quot;;
+    }
+    cout &lt;&lt; &quot;\n&quot;;
+    if (t-&gt;rtag == 0) print_tags(t-&gt;r);
+}
+
+int main() {
+    // A(B(D,E),C)  -- inorder: D B E A C
+    Node* A = new Node(&#x27;A&#x27;);
+    Node* B = new Node(&#x27;B&#x27;);
+    Node* C = new Node(&#x27;C&#x27;);
+    Node* D = new Node(&#x27;D&#x27;);
+    Node* E = new Node(&#x27;E&#x27;);
+    A-&gt;l = B; A-&gt;r = C;
+    B-&gt;l = D; B-&gt;r = E;
+
+    pre = nullptr;
+    in_thread(A);
+    // last node C has null right -&gt; keep as thread to null
+    if (pre &amp;&amp; !pre-&gt;r) {
+        pre-&gt;rtag = 1;
+        pre-&gt;r = nullptr;
+    }
+
+    cout &lt;&lt; &quot;inorder_threads\n&quot;;
+    print_tags(A);
+
+    // note: preorder/postorder threading use same ltag/rtag idea
+    cout &lt;&lt; &quot;also: pre/post thread possible\n&quot;;
+
+    free_tree(A);
+    return 0;
+}
+</code></pre>
+  </section>
+  <nav class="pager"><a href="btree-build.html">上一节<br>二叉树的构造 - 由遍历序列构造二叉树</a><a href="thread-walk.html">下一节<br>线索二叉树(下) - 找前驱/后继, 遍历</a></nav>
+</main>
+<script>window.LESSON_ANIM={"kind":"graph","frames":[{"note":"树 A(B(D,E),C)。空孩子指针先空着。","nodes":[{"id":"A","v":"A","x":0.5,"y":0.14},{"id":"B","v":"B","x":0.28,"y":0.45},{"id":"C","v":"C","x":0.75,"y":0.45},{"id":"D","v":"D","x":0.14,"y":0.8},{"id":"E","v":"E","x":0.42,"y":0.8}],"edges":[{"u":"A","v":"B"},{"u":"A","v":"C"},{"u":"B","v":"D"},{"u":"B","v":"E"}],"hl":[]},{"note":"中序序列：D B E A C。线索按此定前后。","nodes":[{"id":"A","v":"A","x":0.5,"y":0.14},{"id":"B","v":"B","x":0.28,"y":0.45},{"id":"C","v":"C","x":0.75,"y":0.45},{"id":"D","v":"D","x":0.14,"y":0.8},{"id":"E","v":"E","x":0.42,"y":0.8}],"edges":[{"u":"A","v":"B"},{"u":"A","v":"C"},{"u":"B","v":"D"},{"u":"B","v":"E"}],"hl":["D","B","E","A","C"]},{"note":"线索化：空指针改指前驱/后继，ltag/rtag=1。","nodes":[{"id":"A","v":"A","x":0.5,"y":0.14},{"id":"B","v":"B","x":0.28,"y":0.45},{"id":"C","v":"C","x":0.75,"y":0.45},{"id":"D","v":"D","x":0.14,"y":0.8},{"id":"E","v":"E","x":0.42,"y":0.8}],"edges":[{"u":"A","v":"B"},{"u":"A","v":"C"},{"u":"B","v":"D"},{"u":"B","v":"E"}],"hl":["D"]},{"note":"D 无前驱；右空 → 后继线索指向 B。","nodes":[{"id":"A","v":"A","x":0.5,"y":0.14},{"id":"B","v":"B","x":0.28,"y":0.45},{"id":"C","v":"C","x":0.75,"y":0.45},{"id":"D","v":"D","x":0.14,"y":0.8},{"id":"E","v":"E","x":0.42,"y":0.8}],"edges":[{"u":"A","v":"B"},{"u":"A","v":"C"},{"u":"B","v":"D"},{"u":"B","v":"E"},{"u":"D","v":"B","w":"thread","hl":true}],"hl":["D","B"]},{"note":"B 左右都是真孩子，ltag=rtag=0。","nodes":[{"id":"A","v":"A","x":0.5,"y":0.14},{"id":"B","v":"B","x":0.28,"y":0.45},{"id":"C","v":"C","x":0.75,"y":0.45},{"id":"D","v":"D","x":0.14,"y":0.8},{"id":"E","v":"E","x":0.42,"y":0.8}],"edges":[{"u":"A","v":"B"},{"u":"A","v":"C"},{"u":"B","v":"D","hl":true},{"u":"B","v":"E","hl":true},{"u":"D","v":"B","w":"thread"}],"hl":["B"]},{"note":"E：左线索→前驱 B，右线索→后继 A。","nodes":[{"id":"A","v":"A","x":0.5,"y":0.14},{"id":"B","v":"B","x":0.28,"y":0.45},{"id":"C","v":"C","x":0.75,"y":0.45},{"id":"D","v":"D","x":0.14,"y":0.8},{"id":"E","v":"E","x":0.42,"y":0.8}],"edges":[{"u":"A","v":"B"},{"u":"A","v":"C"},{"u":"B","v":"D"},{"u":"B","v":"E"},{"u":"D","v":"B","w":"thread"},{"u":"E","v":"B","w":"thread","hl":true},{"u":"E","v":"A","w":"thread","hl":true}],"hl":["E","B","A"]},{"note":"A 左右均为真孩子；C 左空 → 前驱线索到 A。","nodes":[{"id":"A","v":"A","x":0.5,"y":0.14},{"id":"B","v":"B","x":0.28,"y":0.45},{"id":"C","v":"C","x":0.75,"y":0.45},{"id":"D","v":"D","x":0.14,"y":0.8},{"id":"E","v":"E","x":0.42,"y":0.8}],"edges":[{"u":"A","v":"B"},{"u":"A","v":"C"},{"u":"B","v":"D"},{"u":"B","v":"E"},{"u":"D","v":"B","w":"thread"},{"u":"E","v":"B","w":"thread"},{"u":"E","v":"A","w":"thread"},{"u":"C","v":"A","w":"thread","hl":true}],"hl":["C","A"]},{"note":"C 无后继，右线索为空；中序线索化完成。","nodes":[{"id":"A","v":"A","x":0.5,"y":0.14},{"id":"B","v":"B","x":0.28,"y":0.45},{"id":"C","v":"C","x":0.75,"y":0.45},{"id":"D","v":"D","x":0.14,"y":0.8},{"id":"E","v":"E","x":0.42,"y":0.8}],"edges":[{"u":"A","v":"B"},{"u":"A","v":"C"},{"u":"B","v":"D"},{"u":"B","v":"E"},{"u":"D","v":"B","w":"thread"},{"u":"E","v":"B","w":"thread"},{"u":"E","v":"A","w":"thread"},{"u":"C","v":"A","w":"thread"}],"hl":["C"]},{"note":"先序/后序线索化同理，只是前后继定义不同。","nodes":[{"id":"A","v":"A","x":0.5,"y":0.14},{"id":"B","v":"B","x":0.28,"y":0.45},{"id":"C","v":"C","x":0.75,"y":0.45},{"id":"D","v":"D","x":0.14,"y":0.8},{"id":"E","v":"E","x":0.42,"y":0.8}],"edges":[{"u":"A","v":"B"},{"u":"A","v":"C"},{"u":"B","v":"D"},{"u":"B","v":"E"},{"u":"D","v":"B","w":"thread"},{"u":"E","v":"B","w":"thread"},{"u":"E","v":"A","w":"thread"},{"u":"C","v":"A","w":"thread"}],"hl":["A","B","C","D","E"]},{"note":"小结：空指针变线索，用 ltag/rtag 区分。","nodes":[{"id":"A","v":"A","x":0.5,"y":0.14},{"id":"B","v":"B","x":0.28,"y":0.45},{"id":"C","v":"C","x":0.75,"y":0.45},{"id":"D","v":"D","x":0.14,"y":0.8},{"id":"E","v":"E","x":0.42,"y":0.8}],"edges":[{"u":"A","v":"B"},{"u":"A","v":"C"},{"u":"B","v":"D"},{"u":"B","v":"E"},{"u":"D","v":"B","w":"thread"},{"u":"E","v":"B","w":"thread"},{"u":"E","v":"A","w":"thread"},{"u":"C","v":"A","w":"thread"}],"hl":["A"]}]};</script>
+<script src="../assets/js/anim.js"></script>
+</body>
+</html>

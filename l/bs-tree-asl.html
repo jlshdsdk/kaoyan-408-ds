@@ -1,0 +1,109 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>折半查找的判定树和平均查找长度(ASL)</title>
+<link rel="stylesheet" href="../assets/css/site.css">
+<link rel="icon" href="data:,">
+</head>
+<body>
+<header class="top">
+  <a class="brand" href="../index.html">408 数据结构</a>
+  <span class="muted">34 / 67</span>
+</header>
+<main class="wrap lesson">
+  <p class="crumb">查找</p>
+  <h1>折半查找的判定树和平均查找长度(ASL)</h1>
+  <p>判定树画出折半路径，再算 ASL</p>
+  <div class="stage-wrap"><canvas id="stage" width="960" height="360"></canvas></div>
+  <p id="note"></p>
+  <div class="controls">
+    <button id="prev" type="button">上一步</button>
+    <button id="play" type="button">播放</button>
+    <button id="next" type="button">下一步</button>
+    <span id="step" class="muted"></span>
+    <span class="muted">方向键也可切换</span>
+  </div>
+  <section class="panel">
+    <h2>要点</h2>
+    <ul><li>根是整段中点，左右子树对应左右半段</li><li>结点深度=找到该关键字的比较次数</li><li>本表ASL成功=(1+2+2+3+3+3+3)/7=17/7</li><li>判定树形态由折半规则唯一确定</li></ul>
+    <p class="muted">构造O(n)；算ASL O(n)；折半查找时间O(log n)；空间O(n)存树</p>
+  </section>
+  <section class="panel">
+    <h2>完整 C++ 代码</h2>
+    <p><a href="../c/bs-tree-asl.cpp" download>下载 .cpp</a>
+    <button id="copy" type="button">复制</button></p>
+    <pre><code id="code">// 折半查找判定树：构造并算成功 ASL
+#include &lt;iostream&gt;
+using namespace std;
+
+struct Node {
+    int key;
+    int depth;  // 从 1 起
+    Node* left;
+    Node* right;
+};
+
+Node* buildDecision(const int a[], int low, int high, int depth) {
+    if (low &gt; high) return nullptr;
+    int mid = low + (high - low) / 2;
+    Node* p = new Node{a[mid], depth, nullptr, nullptr};
+    p-&gt;left = buildDecision(a, low, mid - 1, depth + 1);
+    p-&gt;right = buildDecision(a, mid + 1, high, depth + 1);
+    return p;
+}
+
+void freeTree(Node* p) {
+    if (!p) return;
+    freeTree(p-&gt;left);
+    freeTree(p-&gt;right);
+    delete p;
+}
+
+// 累加成功查找的深度之和与结点数
+void sumDepth(Node* p, int&amp; sum, int&amp; cnt) {
+    if (!p) return;
+    sum += p-&gt;depth;
+    cnt++;
+    sumDepth(p-&gt;left, sum, cnt);
+    sumDepth(p-&gt;right, sum, cnt);
+}
+
+void printInorder(Node* p) {
+    if (!p) return;
+    printInorder(p-&gt;left);
+    cout &lt;&lt; p-&gt;key &lt;&lt; &quot;(d=&quot; &lt;&lt; p-&gt;depth &lt;&lt; &quot;) &quot;;
+    printInorder(p-&gt;right);
+}
+
+int main() {
+    int a[] = {2, 5, 8, 12, 16, 23, 38};
+    int n = 7;
+    Node* root = buildDecision(a, 0, n - 1, 1);
+
+    cout &lt;&lt; &quot;inorder with depth: &quot;;
+    printInorder(root);
+    cout &lt;&lt; &quot;\n&quot;;
+
+    int sum = 0, cnt = 0;
+    sumDepth(root, sum, cnt);
+    // ASL_success = (1 + 2*2 + 4*3) / 7 = 17/7
+    cout &lt;&lt; &quot;sum_depth=&quot; &lt;&lt; sum &lt;&lt; &quot; n=&quot; &lt;&lt; cnt &lt;&lt; &quot;\n&quot;;
+    cout &lt;&lt; &quot;ASL_success=&quot; &lt;&lt; (double)sum / cnt &lt;&lt; &quot;\n&quot;;
+
+    freeTree(root);
+
+    // 空表
+    Node* empty = buildDecision(a, 0, -1, 1);
+    if (!empty) cout &lt;&lt; &quot;empty tree\n&quot;;
+    return 0;
+}
+</code></pre>
+  </section>
+  <nav class="pager"><a href="binary-search.html">上一节<br>折半查找(二分查找)</a><a href="bst-idea.html">下一节<br>二叉搜索树(二叉排序树)(二叉查找树)</a></nav>
+</main>
+<script>window.LESSON_ANIM={"kind":"graph","frames":[{"note":"有序表 2 5 8 12 16 23 38，整段 mid→12 作根","nodes":[{"id":"12","v":"12","x":0.5,"y":0.15}],"edges":[],"hl":["12"]},{"note":"左半 2 5 8 的 mid→5，挂到 12 左","nodes":[{"id":"12","v":"12","x":0.5,"y":0.15},{"id":"5","v":"5","x":0.28,"y":0.42}],"edges":[{"u":"12","v":"5"}],"hl":["5"]},{"note":"右半 16 23 38 的 mid→23，挂到 12 右","nodes":[{"id":"12","v":"12","x":0.5,"y":0.15},{"id":"5","v":"5","x":0.28,"y":0.42},{"id":"23","v":"23","x":0.72,"y":0.42}],"edges":[{"u":"12","v":"5"},{"u":"12","v":"23"}],"hl":["23"]},{"note":"5 的左右叶子：2 与 8（深度 3）","nodes":[{"id":"12","v":"12","x":0.5,"y":0.12},{"id":"5","v":"5","x":0.28,"y":0.4},{"id":"23","v":"23","x":0.72,"y":0.4},{"id":"2","v":"2","x":0.14,"y":0.72},{"id":"8","v":"8","x":0.38,"y":0.72}],"edges":[{"u":"12","v":"5"},{"u":"12","v":"23"},{"u":"5","v":"2"},{"u":"5","v":"8"}],"hl":["2","8"]},{"note":"23 的左右叶子：16 与 38，判定树齐了","nodes":[{"id":"12","v":"12","x":0.5,"y":0.1},{"id":"5","v":"5","x":0.28,"y":0.38},{"id":"23","v":"23","x":0.72,"y":0.38},{"id":"2","v":"2","x":0.14,"y":0.7},{"id":"8","v":"8","x":0.38,"y":0.7},{"id":"16","v":"16","x":0.6,"y":0.7},{"id":"38","v":"38","x":0.86,"y":0.7}],"edges":[{"u":"12","v":"5"},{"u":"12","v":"23"},{"u":"5","v":"2"},{"u":"5","v":"8"},{"u":"23","v":"16"},{"u":"23","v":"38"}],"hl":["16","38"]},{"note":"深度1：只有 12，贡献 1×1","nodes":[{"id":"12","v":"12","x":0.5,"y":0.1},{"id":"5","v":"5","x":0.28,"y":0.38},{"id":"23","v":"23","x":0.72,"y":0.38},{"id":"2","v":"2","x":0.14,"y":0.7},{"id":"8","v":"8","x":0.38,"y":0.7},{"id":"16","v":"16","x":0.6,"y":0.7},{"id":"38","v":"38","x":0.86,"y":0.7}],"edges":[{"u":"12","v":"5"},{"u":"12","v":"23"},{"u":"5","v":"2"},{"u":"5","v":"8"},{"u":"23","v":"16"},{"u":"23","v":"38"}],"hl":["12"]},{"note":"深度2：5 与 23，贡献 2×2","nodes":[{"id":"12","v":"12","x":0.5,"y":0.1},{"id":"5","v":"5","x":0.28,"y":0.38},{"id":"23","v":"23","x":0.72,"y":0.38},{"id":"2","v":"2","x":0.14,"y":0.7},{"id":"8","v":"8","x":0.38,"y":0.7},{"id":"16","v":"16","x":0.6,"y":0.7},{"id":"38","v":"38","x":0.86,"y":0.7}],"edges":[{"u":"12","v":"5"},{"u":"12","v":"23"},{"u":"5","v":"2"},{"u":"5","v":"8"},{"u":"23","v":"16"},{"u":"23","v":"38"}],"hl":["5","23"]},{"note":"深度3：四个叶子，贡献 4×3；总和 17","nodes":[{"id":"12","v":"12","x":0.5,"y":0.1},{"id":"5","v":"5","x":0.28,"y":0.38},{"id":"23","v":"23","x":0.72,"y":0.38},{"id":"2","v":"2","x":0.14,"y":0.7},{"id":"8","v":"8","x":0.38,"y":0.7},{"id":"16","v":"16","x":0.6,"y":0.7},{"id":"38","v":"38","x":0.86,"y":0.7}],"edges":[{"u":"12","v":"5"},{"u":"12","v":"23"},{"u":"5","v":"2"},{"u":"5","v":"8"},{"u":"23","v":"16"},{"u":"23","v":"38"}],"hl":["2","8","16","38"]},{"note":"ASL成功=17/7≈2.43，与代码输出一致","nodes":[{"id":"12","v":"12","x":0.5,"y":0.1},{"id":"5","v":"5","x":0.28,"y":0.38},{"id":"23","v":"23","x":0.72,"y":0.38},{"id":"2","v":"2","x":0.14,"y":0.7},{"id":"8","v":"8","x":0.38,"y":0.7},{"id":"16","v":"16","x":0.6,"y":0.7},{"id":"38","v":"38","x":0.86,"y":0.7}],"edges":[{"u":"12","v":"5"},{"u":"12","v":"23"},{"u":"5","v":"2"},{"u":"5","v":"8"},{"u":"23","v":"16"},{"u":"23","v":"38"}],"hl":["12","5","23","2","8","16","38"]}]};</script>
+<script src="../assets/js/anim.js"></script>
+</body>
+</html>

@@ -1,0 +1,83 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>图的深度优先遍历/深度优先搜索</title>
+<link rel="stylesheet" href="../assets/css/site.css">
+<link rel="icon" href="data:,">
+</head>
+<body>
+<header class="top">
+  <a class="brand" href="../index.html">408 数据结构</a>
+  <span class="muted">19 / 67</span>
+</header>
+<main class="wrap lesson">
+  <p class="crumb">图</p>
+  <h1>图的深度优先遍历/深度优先搜索</h1>
+  <p>DFS 沿一条路走到底，再回溯换岔路</p>
+  <div class="stage-wrap"><canvas id="stage" width="960" height="360"></canvas></div>
+  <p id="note"></p>
+  <div class="controls">
+    <button id="prev" type="button">上一步</button>
+    <button id="play" type="button">播放</button>
+    <button id="next" type="button">下一步</button>
+    <span id="step" class="muted"></span>
+    <span class="muted">方向键也可切换</span>
+  </div>
+  <section class="panel">
+    <h2>要点</h2>
+    <ul><li>选未访问邻接点继续深入，像递归下钻</li><li>邻接按字母时，从 A 得到序 A B D C E</li><li>回溯时回到父顶点，再试下一个邻居</li><li>时间戳 tin/tout 记录进入与离开时刻</li></ul>
+    <p class="muted">时间 O(n+m)；空间 O(n) 含递归栈；最坏链状深度 O(n)</p>
+  </section>
+  <section class="panel">
+    <h2>完整 C++ 代码</h2>
+    <p><a href="../c/dfs-idea.cpp" download>下载 .cpp</a>
+    <button id="copy" type="button">复制</button></p>
+    <pre><code id="code">// 有向图 DFS：从 A 出发，邻接点按字母序
+#include &lt;iostream&gt;
+#include &lt;vector&gt;
+using namespace std;
+
+const int N = 5;
+const char* name[N] = {&quot;A&quot;, &quot;B&quot;, &quot;C&quot;, &quot;D&quot;, &quot;E&quot;};
+bool vis[N];
+int stamp;
+int tin[N], tout[N];
+
+void dfs(int u, vector&lt;int&gt; adj[N]) {
+    vis[u] = true;
+    tin[u] = ++stamp;
+    cout &lt;&lt; name[u] &lt;&lt; &quot; &quot;;  // visit order
+    for (int v : adj[u]) {
+        if (!vis[v]) dfs(v, adj);
+    }
+    tout[u] = ++stamp;
+}
+
+int main() {
+    vector&lt;int&gt; adj[N];
+    // A-&gt;B, A-&gt;C, B-&gt;D, C-&gt;D, C-&gt;E  (neighbors already alphabetical)
+    adj[0] = {1, 2};
+    adj[1] = {3};
+    adj[2] = {3, 4};
+    adj[3] = {};
+    adj[4] = {};
+
+    cout &lt;&lt; &quot;order:&quot;;
+    stamp = 0;
+    dfs(0, adj);
+    cout &lt;&lt; &quot;\n&quot;;
+    for (int i = 0; i &lt; N; i++) {
+        cout &lt;&lt; name[i] &lt;&lt; &quot; tin=&quot; &lt;&lt; tin[i] &lt;&lt; &quot; tout=&quot; &lt;&lt; tout[i] &lt;&lt; &quot;\n&quot;;
+    }
+    return 0;
+}
+</code></pre>
+  </section>
+  <nav class="pager"><a href="adj-list.html">上一节<br>图的存储-邻接表/邻接表画法</a><a href="dfs-code.html">下一节<br>图的遍历-深度优先搜索(DFS)代码(C/C++实现)</a></nav>
+</main>
+<script>window.LESSON_ANIM={"kind":"graph","frames":[{"note":"有向图：A→B,A→C,B→D,C→D,C→E，从 A 开始","nodes":[{"id":"A","v":"A","x":0.18,"y":0.35},{"id":"B","v":"B","x":0.4,"y":0.2},{"id":"C","v":"C","x":0.4,"y":0.62},{"id":"D","v":"D","x":0.68,"y":0.35},{"id":"E","v":"E","x":0.88,"y":0.55}],"edges":[{"u":"A","v":"B","dir":true,"hl":false},{"u":"A","v":"C","dir":true,"hl":false},{"u":"B","v":"D","dir":true,"hl":false},{"u":"C","v":"D","dir":true,"hl":false},{"u":"C","v":"E","dir":true,"hl":false}],"hl":["A"]},{"note":"访问 A，邻接点按字母先走 B","nodes":[{"id":"A","v":"A","x":0.18,"y":0.35},{"id":"B","v":"B","x":0.4,"y":0.2},{"id":"C","v":"C","x":0.4,"y":0.62},{"id":"D","v":"D","x":0.68,"y":0.35},{"id":"E","v":"E","x":0.88,"y":0.55}],"edges":[{"u":"A","v":"B","dir":true,"hl":true},{"u":"A","v":"C","dir":true,"hl":false},{"u":"B","v":"D","dir":true,"hl":false},{"u":"C","v":"D","dir":true,"hl":false},{"u":"C","v":"E","dir":true,"hl":false}],"hl":["A","B"]},{"note":"进入 B，唯一邻接是 D","nodes":[{"id":"A","v":"A","x":0.18,"y":0.35},{"id":"B","v":"B","x":0.4,"y":0.2},{"id":"C","v":"C","x":0.4,"y":0.62},{"id":"D","v":"D","x":0.68,"y":0.35},{"id":"E","v":"E","x":0.88,"y":0.55}],"edges":[{"u":"A","v":"B","dir":true,"hl":true},{"u":"A","v":"C","dir":true,"hl":false},{"u":"B","v":"D","dir":true,"hl":true},{"u":"C","v":"D","dir":true,"hl":false},{"u":"C","v":"E","dir":true,"hl":false}],"hl":["B","D"]},{"note":"进入 D，无出边，准备回溯","nodes":[{"id":"A","v":"A","x":0.18,"y":0.35},{"id":"B","v":"B","x":0.4,"y":0.2},{"id":"C","v":"C","x":0.4,"y":0.62},{"id":"D","v":"D","x":0.68,"y":0.35},{"id":"E","v":"E","x":0.88,"y":0.55}],"edges":[{"u":"A","v":"B","dir":true,"hl":false},{"u":"A","v":"C","dir":true,"hl":false},{"u":"B","v":"D","dir":true,"hl":true},{"u":"C","v":"D","dir":true,"hl":false},{"u":"C","v":"E","dir":true,"hl":false}],"hl":["D"]},{"note":"回溯到 B，再回到 A，改走 C","nodes":[{"id":"A","v":"A","x":0.18,"y":0.35},{"id":"B","v":"B","x":0.4,"y":0.2},{"id":"C","v":"C","x":0.4,"y":0.62},{"id":"D","v":"D","x":0.68,"y":0.35},{"id":"E","v":"E","x":0.88,"y":0.55}],"edges":[{"u":"A","v":"B","dir":true,"hl":false},{"u":"A","v":"C","dir":true,"hl":true},{"u":"B","v":"D","dir":true,"hl":false},{"u":"C","v":"D","dir":true,"hl":false},{"u":"C","v":"E","dir":true,"hl":false}],"hl":["A","C"]},{"note":"进入 C，邻接 D 已访问，改走 E","nodes":[{"id":"A","v":"A","x":0.18,"y":0.35},{"id":"B","v":"B","x":0.4,"y":0.2},{"id":"C","v":"C","x":0.4,"y":0.62},{"id":"D","v":"D","x":0.68,"y":0.35},{"id":"E","v":"E","x":0.88,"y":0.55}],"edges":[{"u":"A","v":"B","dir":true,"hl":false},{"u":"A","v":"C","dir":true,"hl":false},{"u":"B","v":"D","dir":true,"hl":false},{"u":"C","v":"D","dir":true,"hl":true},{"u":"C","v":"E","dir":true,"hl":true}],"hl":["C","E"]},{"note":"进入 E，无出边，DFS 结束","nodes":[{"id":"A","v":"A","x":0.18,"y":0.35},{"id":"B","v":"B","x":0.4,"y":0.2},{"id":"C","v":"C","x":0.4,"y":0.62},{"id":"D","v":"D","x":0.68,"y":0.35},{"id":"E","v":"E","x":0.88,"y":0.55}],"edges":[{"u":"A","v":"B","dir":true,"hl":false},{"u":"A","v":"C","dir":true,"hl":false},{"u":"B","v":"D","dir":true,"hl":false},{"u":"C","v":"D","dir":true,"hl":false},{"u":"C","v":"E","dir":true,"hl":true}],"hl":["E"]},{"note":"访问序：A B D C E（与打印一致）","nodes":[{"id":"A","v":"A","x":0.18,"y":0.35},{"id":"B","v":"B","x":0.4,"y":0.2},{"id":"C","v":"C","x":0.4,"y":0.62},{"id":"D","v":"D","x":0.68,"y":0.35},{"id":"E","v":"E","x":0.88,"y":0.55}],"edges":[{"u":"A","v":"B","dir":true,"hl":false},{"u":"A","v":"C","dir":true,"hl":false},{"u":"B","v":"D","dir":true,"hl":false},{"u":"C","v":"D","dir":true,"hl":false},{"u":"C","v":"E","dir":true,"hl":false}],"hl":["A","B","D","C","E"]},{"note":"递归对应深入，返回对应回溯","nodes":[{"id":"A","v":"A","x":0.18,"y":0.35},{"id":"B","v":"B","x":0.4,"y":0.2},{"id":"C","v":"C","x":0.4,"y":0.62},{"id":"D","v":"D","x":0.68,"y":0.35},{"id":"E","v":"E","x":0.88,"y":0.55}],"edges":[{"u":"A","v":"B","dir":true,"hl":false},{"u":"A","v":"C","dir":true,"hl":false},{"u":"B","v":"D","dir":true,"hl":false},{"u":"C","v":"D","dir":true,"hl":false},{"u":"C","v":"E","dir":true,"hl":false}],"hl":["A"]},{"note":"tin/tout 可刻画祖先-子孙区间关系","nodes":[{"id":"A","v":"A","x":0.18,"y":0.35},{"id":"B","v":"B","x":0.4,"y":0.2},{"id":"C","v":"C","x":0.4,"y":0.62},{"id":"D","v":"D","x":0.68,"y":0.35},{"id":"E","v":"E","x":0.88,"y":0.55}],"edges":[{"u":"A","v":"B","dir":true,"hl":false},{"u":"A","v":"C","dir":true,"hl":false},{"u":"B","v":"D","dir":true,"hl":false},{"u":"C","v":"D","dir":true,"hl":false},{"u":"C","v":"E","dir":true,"hl":false}],"hl":["A","B","D"]}]};</script>
+<script src="../assets/js/anim.js"></script>
+</body>
+</html>

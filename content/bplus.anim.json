@@ -1,0 +1,55 @@
+{
+  "kind": "text",
+  "frames": [
+    {
+      "note": "插 5：只有一片叶子 [5]",
+      "lines": ["leaf: [5] -> null", "index: (none)"],
+      "cur": 0
+    },
+    {
+      "note": "插 8：叶子变成 [5 8]",
+      "lines": ["leaf: [5 8] -> null", "index: (none)"],
+      "cur": 0
+    },
+    {
+      "note": "插 10：叶子出现 3 键，准备分裂",
+      "lines": ["leaf: [5 8 10] overflow", "next: split leaf"],
+      "cur": 0
+    },
+    {
+      "note": "分裂为 [5] 与 [8 10]，索引上提 8",
+      "lines": ["index: [8]", "leaf: [5] -> [8 10]"],
+      "cur": 1
+    },
+    {
+      "note": "插 15：右叶变 [8 10 15] 再满",
+      "lines": ["index: [8]", "leaf: [5] -> [8 10 15]"],
+      "cur": 1
+    },
+    {
+      "note": "右叶分裂成 [8] 与 [10 15]，上提 10",
+      "lines": ["index: [8 10]", "leaf: [5]->[8]->[10 15]"],
+      "cur": 0
+    },
+    {
+      "note": "插 20：最右叶 [10 15 20] 再满",
+      "lines": ["index: [8 10]", "leaf: ... -> [10 15 20]"],
+      "cur": 1
+    },
+    {
+      "note": "再裂成 [10] 与 [15 20]，上提 15；索引层也可能再裂",
+      "lines": ["index grows / may split", "leaf: [5]->[8]->[10]->[15 20]"],
+      "cur": 1
+    },
+    {
+      "note": "沿叶子链扫完：5 8 10 15 20",
+      "lines": ["chain: 5 8 10 15 20", "all keys live in leaves"],
+      "cur": 0
+    },
+    {
+      "note": "和 B 树比：B+ 内部只索引，范围查走链表",
+      "lines": ["B: keys also inside", "B+: index only + leaf list"],
+      "cur": 1
+    }
+  ]
+}

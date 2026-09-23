@@ -1,0 +1,68 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>图的存储-邻接表/邻接表画法</title>
+<link rel="stylesheet" href="../assets/css/site.css">
+<link rel="icon" href="data:,">
+</head>
+<body>
+<header class="top">
+  <a class="brand" href="../index.html">408 数据结构</a>
+  <span class="muted">18 / 67</span>
+</header>
+<main class="wrap lesson">
+  <p class="crumb">图</p>
+  <h1>图的存储-邻接表/邻接表画法</h1>
+  <p>邻接表给每个顶点挂一条邻居链</p>
+  <div class="stage-wrap"><canvas id="stage" width="960" height="360"></canvas></div>
+  <p id="note"></p>
+  <div class="controls">
+    <button id="prev" type="button">上一步</button>
+    <button id="play" type="button">播放</button>
+    <button id="next" type="button">下一步</button>
+    <span id="step" class="muted"></span>
+    <span class="muted">方向键也可切换</span>
+  </div>
+  <section class="panel">
+    <h2>要点</h2>
+    <ul><li>顶点数组 + 每点一条邻接链表或 vector</li><li>无向边要在两端各存一次</li><li>空间约 O(n+m)，适合稀疏图</li><li>枚举邻居快，判两边是否相邻要扫描</li></ul>
+    <p class="muted">建图 O(n+m)；枚举邻接 O(deg)；判边 O(deg)；空间 O(n+m)</p>
+  </section>
+  <section class="panel">
+    <h2>完整 C++ 代码</h2>
+    <p><a href="../c/adj-list.cpp" download>下载 .cpp</a>
+    <button id="copy" type="button">复制</button></p>
+    <pre><code id="code">// 邻接表存储无向图：每条无向边存两次
+#include &lt;iostream&gt;
+#include &lt;vector&gt;
+using namespace std;
+
+const int N = 5;
+const char* name[N] = {&quot;A&quot;, &quot;B&quot;, &quot;C&quot;, &quot;D&quot;, &quot;E&quot;};
+
+int main() {
+    vector&lt;int&gt; adj[N];
+    int edges[][2] = {{0, 1}, {1, 2}, {0, 2}, {2, 3}, {3, 4}};
+    for (int i = 0; i &lt; 5; i++) {
+        int u = edges[i][0], v = edges[i][1];
+        adj[u].push_back(v);
+        adj[v].push_back(u);  // undirected: store both ways
+    }
+
+    for (int i = 0; i &lt; N; i++) {
+        cout &lt;&lt; name[i] &lt;&lt; &quot;:&quot;;
+        for (int v : adj[i]) cout &lt;&lt; &quot; &quot; &lt;&lt; name[v];
+        cout &lt;&lt; &quot;\n&quot;;
+    }
+    return 0;
+}
+</code></pre>
+  </section>
+  <nav class="pager"><a href="adj-matrix.html">上一节<br>图的存储-邻接矩阵</a><a href="dfs-idea.html">下一节<br>图的深度优先遍历/深度优先搜索</a></nav>
+</main>
+<script>window.LESSON_ANIM={"kind":"graph","frames":[{"note":"同一无向图，准备画成邻接表形态","nodes":[{"id":"A","v":"A","x":0.18,"y":0.35},{"id":"B","v":"B","x":0.4,"y":0.2},{"id":"C","v":"C","x":0.4,"y":0.62},{"id":"D","v":"D","x":0.68,"y":0.35},{"id":"E","v":"E","x":0.88,"y":0.55}],"edges":[{"u":"A","v":"B","dir":false,"hl":false},{"u":"B","v":"C","dir":false,"hl":false},{"u":"A","v":"C","dir":false,"hl":false},{"u":"C","v":"D","dir":false,"hl":false},{"u":"D","v":"E","dir":false,"hl":false}],"hl":[]},{"note":"A 的链：邻居 B、C","nodes":[{"id":"A","v":"A","x":0.18,"y":0.35},{"id":"B","v":"B","x":0.4,"y":0.2},{"id":"C","v":"C","x":0.4,"y":0.62},{"id":"D","v":"D","x":0.68,"y":0.35},{"id":"E","v":"E","x":0.88,"y":0.55}],"edges":[{"u":"A","v":"B","dir":false,"hl":true},{"u":"B","v":"C","dir":false,"hl":false},{"u":"A","v":"C","dir":false,"hl":true},{"u":"C","v":"D","dir":false,"hl":false},{"u":"D","v":"E","dir":false,"hl":false}],"hl":["A","B","C"]},{"note":"B 的链：邻居 A、C","nodes":[{"id":"A","v":"A","x":0.18,"y":0.35},{"id":"B","v":"B","x":0.4,"y":0.2},{"id":"C","v":"C","x":0.4,"y":0.62},{"id":"D","v":"D","x":0.68,"y":0.35},{"id":"E","v":"E","x":0.88,"y":0.55}],"edges":[{"u":"A","v":"B","dir":false,"hl":true},{"u":"B","v":"C","dir":false,"hl":true},{"u":"A","v":"C","dir":false,"hl":false},{"u":"C","v":"D","dir":false,"hl":false},{"u":"D","v":"E","dir":false,"hl":false}],"hl":["B","A","C"]},{"note":"C 的链：邻居 A、B、D","nodes":[{"id":"A","v":"A","x":0.18,"y":0.35},{"id":"B","v":"B","x":0.4,"y":0.2},{"id":"C","v":"C","x":0.4,"y":0.62},{"id":"D","v":"D","x":0.68,"y":0.35},{"id":"E","v":"E","x":0.88,"y":0.55}],"edges":[{"u":"A","v":"B","dir":false,"hl":false},{"u":"B","v":"C","dir":false,"hl":true},{"u":"A","v":"C","dir":false,"hl":true},{"u":"C","v":"D","dir":false,"hl":true},{"u":"D","v":"E","dir":false,"hl":false}],"hl":["C","A","B","D"]},{"note":"D 的链：邻居 C、E","nodes":[{"id":"A","v":"A","x":0.18,"y":0.35},{"id":"B","v":"B","x":0.4,"y":0.2},{"id":"C","v":"C","x":0.4,"y":0.62},{"id":"D","v":"D","x":0.68,"y":0.35},{"id":"E","v":"E","x":0.88,"y":0.55}],"edges":[{"u":"A","v":"B","dir":false,"hl":false},{"u":"B","v":"C","dir":false,"hl":false},{"u":"A","v":"C","dir":false,"hl":false},{"u":"C","v":"D","dir":false,"hl":true},{"u":"D","v":"E","dir":false,"hl":true}],"hl":["D","C","E"]},{"note":"E 的链：邻居只有 D","nodes":[{"id":"A","v":"A","x":0.18,"y":0.35},{"id":"B","v":"B","x":0.4,"y":0.2},{"id":"C","v":"C","x":0.4,"y":0.62},{"id":"D","v":"D","x":0.68,"y":0.35},{"id":"E","v":"E","x":0.88,"y":0.55}],"edges":[{"u":"A","v":"B","dir":false,"hl":false},{"u":"B","v":"C","dir":false,"hl":false},{"u":"A","v":"C","dir":false,"hl":false},{"u":"C","v":"D","dir":false,"hl":false},{"u":"D","v":"E","dir":false,"hl":true}],"hl":["E","D"]},{"note":"无向边在两端各挂一次，共 10 个表结点","nodes":[{"id":"A","v":"A","x":0.18,"y":0.35},{"id":"B","v":"B","x":0.4,"y":0.2},{"id":"C","v":"C","x":0.4,"y":0.62},{"id":"D","v":"D","x":0.68,"y":0.35},{"id":"E","v":"E","x":0.88,"y":0.55}],"edges":[{"u":"A","v":"B","dir":false,"hl":false},{"u":"B","v":"C","dir":false,"hl":false},{"u":"A","v":"C","dir":false,"hl":false},{"u":"C","v":"D","dir":false,"hl":false},{"u":"D","v":"E","dir":false,"hl":false}],"hl":["A","B","C","D","E"]},{"note":"代码里 adj[u].push_back(v) 与 adj[v].push_back(u)","nodes":[{"id":"A","v":"A","x":0.18,"y":0.35},{"id":"B","v":"B","x":0.4,"y":0.2},{"id":"C","v":"C","x":0.4,"y":0.62},{"id":"D","v":"D","x":0.68,"y":0.35},{"id":"E","v":"E","x":0.88,"y":0.55}],"edges":[{"u":"A","v":"B","dir":false,"hl":true},{"u":"B","v":"C","dir":false,"hl":false},{"u":"A","v":"C","dir":false,"hl":false},{"u":"C","v":"D","dir":false,"hl":false},{"u":"D","v":"E","dir":false,"hl":false}],"hl":["A","B"]},{"note":"稀疏图用邻接表比矩阵更省空间","nodes":[{"id":"A","v":"A","x":0.18,"y":0.35},{"id":"B","v":"B","x":0.4,"y":0.2},{"id":"C","v":"C","x":0.4,"y":0.62},{"id":"D","v":"D","x":0.68,"y":0.35},{"id":"E","v":"E","x":0.88,"y":0.55}],"edges":[{"u":"A","v":"B","dir":false,"hl":false},{"u":"B","v":"C","dir":false,"hl":false},{"u":"A","v":"C","dir":false,"hl":false},{"u":"C","v":"D","dir":false,"hl":false},{"u":"D","v":"E","dir":false,"hl":false}],"hl":[]},{"note":"整表就绪，可直接用于遍历","nodes":[{"id":"A","v":"A","x":0.18,"y":0.35},{"id":"B","v":"B","x":0.4,"y":0.2},{"id":"C","v":"C","x":0.4,"y":0.62},{"id":"D","v":"D","x":0.68,"y":0.35},{"id":"E","v":"E","x":0.88,"y":0.55}],"edges":[{"u":"A","v":"B","dir":false,"hl":false},{"u":"B","v":"C","dir":false,"hl":false},{"u":"A","v":"C","dir":false,"hl":false},{"u":"C","v":"D","dir":false,"hl":false},{"u":"D","v":"E","dir":false,"hl":false}],"hl":["A","B","C","D","E"]}]};</script>
+<script src="../assets/js/anim.js"></script>
+</body>
+</html>

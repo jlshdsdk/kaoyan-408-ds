@@ -1,0 +1,100 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>判断是否为二叉搜索树(二叉排序树)代码(C/C++实现)</title>
+<link rel="stylesheet" href="../assets/css/site.css">
+<link rel="icon" href="data:,">
+</head>
+<body>
+<header class="top">
+  <a class="brand" href="../index.html">408 数据结构</a>
+  <span class="muted">38 / 67</span>
+</header>
+<main class="wrap lesson">
+  <p class="crumb">查找</p>
+  <h1>判断是否为二叉搜索树(二叉排序树)代码(C/C++实现)</h1>
+  <p>用上下界判定整棵是否BST</p>
+  <div class="stage-wrap"><canvas id="stage" width="960" height="360"></canvas></div>
+  <p id="note"></p>
+  <div class="controls">
+    <button id="prev" type="button">上一步</button>
+    <button id="play" type="button">播放</button>
+    <button id="next" type="button">下一步</button>
+    <span id="step" class="muted"></span>
+    <span class="muted">方向键也可切换</span>
+  </div>
+  <section class="panel">
+    <h2>要点</h2>
+    <ul><li>每个结点必须落在开区间(下界,上界)内</li><li>往左走时上界改为根值，往右走时下界改为根值</li><li>只判左&lt;根&lt;右会漏掉右子树里更小的数</li><li>空树约定为合法BST</li></ul>
+    <p class="muted">时间O(n)每个结点一次；空间递归O(h)，最坏O(n)</p>
+  </section>
+  <section class="panel">
+    <h2>完整 C++ 代码</h2>
+    <p><a href="../c/bst-check.cpp" download>下载 .cpp</a>
+    <button id="copy" type="button">复制</button></p>
+    <pre><code id="code">// 用上下界判断是否为二叉搜索树
+#include &lt;iostream&gt;
+#include &lt;climits&gt;
+using namespace std;
+
+struct Node {
+    int key;
+    Node* left;
+    Node* right;
+};
+
+Node* make(int key, Node* l = nullptr, Node* r = nullptr) {
+    return new Node{key, l, r};
+}
+
+// 合法区间 (lo, hi)，开区间；空树为真
+bool isBST(Node* p, long long lo, long long hi) {
+    if (!p) return true;
+    if (p-&gt;key &lt;= lo || p-&gt;key &gt;= hi) return false;
+    return isBST(p-&gt;left, lo, p-&gt;key) &amp;&amp; isBST(p-&gt;right, p-&gt;key, hi);
+}
+
+bool check(Node* root) {
+    return isBST(root, LLONG_MIN, LLONG_MAX);
+}
+
+void freeTree(Node* p) {
+    if (!p) return;
+    freeTree(p-&gt;left);
+    freeTree(p-&gt;right);
+    delete p;
+}
+
+int main() {
+    // 真 BST：与前面同一插入序列形成的树
+    Node* good = make(8,
+        make(3, make(1), make(6, make(4), nullptr)),
+        make(10, nullptr, make(14)));
+    cout &lt;&lt; &quot;good=&quot; &lt;&lt; (check(good) ? &quot;true&quot; : &quot;false&quot;) &lt;&lt; &quot;\n&quot;;
+
+    // 假树：根 5，左 1，右 4（4 在右却小于根）
+    Node* bad = make(5, make(1), make(4));
+    cout &lt;&lt; &quot;bad=&quot; &lt;&lt; (check(bad) ? &quot;true&quot; : &quot;false&quot;) &lt;&lt; &quot;\n&quot;;
+
+    // 仅查父子会漏的经典反例：右子树里藏了更小的 4
+    Node* tricky = make(5, make(1), make(6, make(4), nullptr));
+    cout &lt;&lt; &quot;tricky=&quot; &lt;&lt; (check(tricky) ? &quot;true&quot; : &quot;false&quot;) &lt;&lt; &quot;\n&quot;;
+
+    // 空树
+    cout &lt;&lt; &quot;empty=&quot; &lt;&lt; (check(nullptr) ? &quot;true&quot; : &quot;false&quot;) &lt;&lt; &quot;\n&quot;;
+
+    freeTree(good);
+    freeTree(bad);
+    freeTree(tricky);
+    return 0;
+}
+</code></pre>
+  </section>
+  <nav class="pager"><a href="bst-delete.html">上一节<br>二叉搜索树代码 - 删除(C/C++实现)</a><a href="avl.html">下一节<br>平衡二叉树(AVL树)</a></nav>
+</main>
+<script>window.LESSON_ANIM={"kind":"graph","frames":[{"note":"真BST：8 为根，左小右大","nodes":[{"id":"8","v":"8","x":0.5,"y":0.08},{"id":"3","v":"3","x":0.28,"y":0.32},{"id":"10","v":"10","x":0.72,"y":0.32},{"id":"1","v":"1","x":0.14,"y":0.56},{"id":"6","v":"6","x":0.4,"y":0.56},{"id":"14","v":"14","x":0.86,"y":0.56},{"id":"4","v":"4","x":0.32,"y":0.82}],"edges":[{"u":"8","v":"3"},{"u":"8","v":"10"},{"u":"3","v":"1"},{"u":"3","v":"6"},{"u":"10","v":"14"},{"u":"6","v":"4"}],"hl":["8"]},{"note":"查 3：必须 \u003c8，区间 (-∞,8)","nodes":[{"id":"8","v":"8","x":0.5,"y":0.08},{"id":"3","v":"3","x":0.28,"y":0.32},{"id":"10","v":"10","x":0.72,"y":0.32},{"id":"1","v":"1","x":0.14,"y":0.56},{"id":"6","v":"6","x":0.4,"y":0.56},{"id":"14","v":"14","x":0.86,"y":0.56},{"id":"4","v":"4","x":0.32,"y":0.82}],"edges":[{"u":"8","v":"3"},{"u":"8","v":"10"},{"u":"3","v":"1"},{"u":"3","v":"6"},{"u":"10","v":"14"},{"u":"6","v":"4"}],"hl":["3"]},{"note":"整棵扫完，good=true","nodes":[{"id":"8","v":"8","x":0.5,"y":0.08},{"id":"3","v":"3","x":0.28,"y":0.32},{"id":"10","v":"10","x":0.72,"y":0.32},{"id":"1","v":"1","x":0.14,"y":0.56},{"id":"6","v":"6","x":0.4,"y":0.56},{"id":"14","v":"14","x":0.86,"y":0.56},{"id":"4","v":"4","x":0.32,"y":0.82}],"edges":[{"u":"8","v":"3"},{"u":"8","v":"10"},{"u":"3","v":"1"},{"u":"3","v":"6"},{"u":"10","v":"14"},{"u":"6","v":"4"}],"hl":["8","3","10","1","6","14","4"]},{"note":"假树：根 5，左 1，右 4","nodes":[{"id":"5","v":"5","x":0.5,"y":0.25},{"id":"1","v":"1","x":0.3,"y":0.65},{"id":"4","v":"4","x":0.7,"y":0.65}],"edges":[{"u":"5","v":"1"},{"u":"5","v":"4"}],"hl":["5"]},{"note":"右孩子 4：要求 >5，但 4\u003c5，违规","nodes":[{"id":"5","v":"5","x":0.5,"y":0.25},{"id":"1","v":"1","x":0.3,"y":0.65},{"id":"4","v":"4","x":0.7,"y":0.65}],"edges":[{"u":"5","v":"1"},{"u":"5","v":"4"}],"hl":["4"]},{"note":"bad=false；中序 1 5 4 非递增","nodes":[{"id":"5","v":"5","x":0.5,"y":0.25},{"id":"1","v":"1","x":0.3,"y":0.65},{"id":"4","v":"4","x":0.7,"y":0.65}],"edges":[{"u":"5","v":"1"},{"u":"5","v":"4"}],"hl":["1","5","4"]},{"note":"易漏例：5 的右子树里藏着 4","nodes":[{"id":"5","v":"5","x":0.5,"y":0.15},{"id":"1","v":"1","x":0.28,"y":0.45},{"id":"6","v":"6","x":0.72,"y":0.45},{"id":"4","v":"4","x":0.58,"y":0.78}],"edges":[{"u":"5","v":"1"},{"u":"5","v":"6"},{"u":"6","v":"4"}],"hl":["4"]},{"note":"只判父子会过；上下界能抓出 4∉(5,∞)","nodes":[{"id":"5","v":"5","x":0.5,"y":0.15},{"id":"1","v":"1","x":0.28,"y":0.45},{"id":"6","v":"6","x":0.72,"y":0.45},{"id":"4","v":"4","x":0.58,"y":0.78}],"edges":[{"u":"5","v":"1"},{"u":"5","v":"6"},{"u":"6","v":"4"}],"hl":["5","6","4"]},{"note":"tricky=false，与代码输出一致","nodes":[{"id":"5","v":"5","x":0.5,"y":0.15},{"id":"1","v":"1","x":0.28,"y":0.45},{"id":"6","v":"6","x":0.72,"y":0.45},{"id":"4","v":"4","x":0.58,"y":0.78}],"edges":[{"u":"5","v":"1"},{"u":"5","v":"6"},{"u":"6","v":"4"}],"hl":[]}]};</script>
+<script src="../assets/js/anim.js"></script>
+</body>
+</html>

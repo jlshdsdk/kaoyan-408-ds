@@ -1,0 +1,92 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>拓扑排序</title>
+<link rel="stylesheet" href="../assets/css/site.css">
+<link rel="icon" href="data:,">
+</head>
+<body>
+<header class="top">
+  <a class="brand" href="../index.html">408 数据结构</a>
+  <span class="muted">29 / 67</span>
+</header>
+<main class="wrap lesson">
+  <p class="crumb">图</p>
+  <h1>拓扑排序</h1>
+  <p>入度为 0 入队，逐个输出并减邻点</p>
+  <div class="stage-wrap"><canvas id="stage" width="960" height="360"></canvas></div>
+  <p id="note"></p>
+  <div class="controls">
+    <button id="prev" type="button">上一步</button>
+    <button id="play" type="button">播放</button>
+    <button id="next" type="button">下一步</button>
+    <span id="step" class="muted"></span>
+    <span class="muted">方向键也可切换</span>
+  </div>
+  <section class="panel">
+    <h2>要点</h2>
+    <ul><li>先统计每个点的入度</li><li>入度为 0 的点可立即输出</li><li>输出后把后继入度减一，新零入度入队</li><li>本图一种合法序：A B C D E F</li></ul>
+    <p class="muted">时间 O(V+E)；空间 O(V+E)；有环则无法输出全部点</p>
+  </section>
+  <section class="panel">
+    <h2>完整 C++ 代码</h2>
+    <p><a href="../c/topo-idea.cpp" download>下载 .cpp</a>
+    <button id="copy" type="button">复制</button></p>
+    <pre><code id="code">// 拓扑排序思想：入度 + 队列（Kahn）
+#include &lt;iostream&gt;
+#include &lt;queue&gt;
+#include &lt;vector&gt;
+using namespace std;
+
+const int N = 6;  // A..F
+
+char name(int i) { return char(&#x27;A&#x27; + i); }
+
+int main() {
+    // A-&gt;B A-&gt;C B-&gt;D C-&gt;D C-&gt;E D-&gt;F E-&gt;F
+    vector&lt;int&gt; adj[N];
+    adj[0].push_back(1);
+    adj[0].push_back(2);
+    adj[1].push_back(3);
+    adj[2].push_back(3);
+    adj[2].push_back(4);
+    adj[3].push_back(5);
+    adj[4].push_back(5);
+
+    int indeg[N] = {0};
+    for (int u = 0; u &lt; N; u++) {
+        for (size_t i = 0; i &lt; adj[u].size(); i++) indeg[adj[u][i]]++;
+    }
+
+    queue&lt;int&gt; q;
+    for (int i = 0; i &lt; N; i++) {
+        if (indeg[i] == 0) q.push(i);
+    }
+
+    cout &lt;&lt; &quot;order:&quot;;
+    int cnt = 0;
+    while (!q.empty()) {
+        int u = q.front();
+        q.pop();
+        cout &lt;&lt; &quot; &quot; &lt;&lt; name(u);
+        cnt++;
+        for (size_t i = 0; i &lt; adj[u].size(); i++) {
+            int v = adj[u][i];
+            indeg[v]--;
+            if (indeg[v] == 0) q.push(v);
+        }
+    }
+    cout &lt;&lt; &quot;\n&quot;;
+    if (cnt != N) cout &lt;&lt; &quot;error cycle\n&quot;;
+    return 0;
+}
+</code></pre>
+  </section>
+  <nav class="pager"><a href="floyd-code.html">上一节<br>最短路径-Floyd(弗洛伊德)算法代码(C/C++实现)</a><a href="topo-code.html">下一节<br>拓扑排序代码(C/C++实现)</a></nav>
+</main>
+<script>window.LESSON_ANIM={"kind":"graph","frames":[{"note":"DAG：入度 A0 B1 C1 D2 E1 F2","nodes":[{"id":"A","v":"A0","x":0.08,"y":0.4},{"id":"B","v":"B1","x":0.28,"y":0.18},{"id":"C","v":"C1","x":0.28,"y":0.65},{"id":"D","v":"D2","x":0.52,"y":0.32},{"id":"E","v":"E1","x":0.52,"y":0.7},{"id":"F","v":"F2","x":0.82,"y":0.5}],"edges":[{"u":"A","v":"B"},{"u":"A","v":"C"},{"u":"B","v":"D"},{"u":"C","v":"D"},{"u":"C","v":"E"},{"u":"D","v":"F"},{"u":"E","v":"F"}],"hl":["A"]},{"note":"队列先放 A，输出 A","nodes":[{"id":"A","v":"A*","x":0.08,"y":0.4},{"id":"B","v":"B0","x":0.28,"y":0.18},{"id":"C","v":"C0","x":0.28,"y":0.65},{"id":"D","v":"D2","x":0.52,"y":0.32},{"id":"E","v":"E1","x":0.52,"y":0.7},{"id":"F","v":"F2","x":0.82,"y":0.5}],"edges":[{"u":"A","v":"B","hl":true},{"u":"A","v":"C","hl":true},{"u":"B","v":"D"},{"u":"C","v":"D"},{"u":"C","v":"E"},{"u":"D","v":"F"},{"u":"E","v":"F"}],"hl":["A","B","C"]},{"note":"B、C 入度变 0，队列 B C","nodes":[{"id":"A","v":"A*","x":0.08,"y":0.4},{"id":"B","v":"B0","x":0.28,"y":0.18},{"id":"C","v":"C0","x":0.28,"y":0.65},{"id":"D","v":"D2","x":0.52,"y":0.32},{"id":"E","v":"E1","x":0.52,"y":0.7},{"id":"F","v":"F2","x":0.82,"y":0.5}],"edges":[{"u":"A","v":"B"},{"u":"A","v":"C"},{"u":"B","v":"D"},{"u":"C","v":"D"},{"u":"C","v":"E"},{"u":"D","v":"F"},{"u":"E","v":"F"}],"hl":["B","C"]},{"note":"输出 B，D 入度 2→1","nodes":[{"id":"A","v":"A*","x":0.08,"y":0.4},{"id":"B","v":"B*","x":0.28,"y":0.18},{"id":"C","v":"C0","x":0.28,"y":0.65},{"id":"D","v":"D1","x":0.52,"y":0.32},{"id":"E","v":"E1","x":0.52,"y":0.7},{"id":"F","v":"F2","x":0.82,"y":0.5}],"edges":[{"u":"B","v":"D","hl":true},{"u":"A","v":"C"},{"u":"C","v":"D"},{"u":"C","v":"E"},{"u":"D","v":"F"},{"u":"E","v":"F"}],"hl":["B","D"]},{"note":"输出 C，D 与 E 入度变 0","nodes":[{"id":"A","v":"A*","x":0.08,"y":0.4},{"id":"B","v":"B*","x":0.28,"y":0.18},{"id":"C","v":"C*","x":0.28,"y":0.65},{"id":"D","v":"D0","x":0.52,"y":0.32},{"id":"E","v":"E0","x":0.52,"y":0.7},{"id":"F","v":"F2","x":0.82,"y":0.5}],"edges":[{"u":"C","v":"D","hl":true},{"u":"C","v":"E","hl":true},{"u":"D","v":"F"},{"u":"E","v":"F"}],"hl":["C","D","E"]},{"note":"输出 D，F 入度 2→1","nodes":[{"id":"A","v":"A*","x":0.08,"y":0.4},{"id":"B","v":"B*","x":0.28,"y":0.18},{"id":"C","v":"C*","x":0.28,"y":0.65},{"id":"D","v":"D*","x":0.52,"y":0.32},{"id":"E","v":"E0","x":0.52,"y":0.7},{"id":"F","v":"F1","x":0.82,"y":0.5}],"edges":[{"u":"D","v":"F","hl":true},{"u":"E","v":"F"}],"hl":["D","F"]},{"note":"输出 E，F 入度变 0","nodes":[{"id":"A","v":"A*","x":0.08,"y":0.4},{"id":"B","v":"B*","x":0.28,"y":0.18},{"id":"C","v":"C*","x":0.28,"y":0.65},{"id":"D","v":"D*","x":0.52,"y":0.32},{"id":"E","v":"E*","x":0.52,"y":0.7},{"id":"F","v":"F0","x":0.82,"y":0.5}],"edges":[{"u":"E","v":"F","hl":true}],"hl":["E","F"]},{"note":"输出 F，拓扑序 A B C D E F","nodes":[{"id":"A","v":"A*","x":0.08,"y":0.4},{"id":"B","v":"B*","x":0.28,"y":0.18},{"id":"C","v":"C*","x":0.28,"y":0.65},{"id":"D","v":"D*","x":0.52,"y":0.32},{"id":"E","v":"E*","x":0.52,"y":0.7},{"id":"F","v":"F*","x":0.82,"y":0.5}],"edges":[{"u":"A","v":"B"},{"u":"A","v":"C"},{"u":"B","v":"D"},{"u":"C","v":"D"},{"u":"C","v":"E"},{"u":"D","v":"F"},{"u":"E","v":"F"}],"hl":["A","B","C","D","E","F"]}]};</script>
+<script src="../assets/js/anim.js"></script>
+</body>
+</html>

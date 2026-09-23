@@ -1,0 +1,338 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>红黑树 - 删除</title>
+<link rel="stylesheet" href="../assets/css/site.css">
+<link rel="icon" href="data:,">
+</head>
+<body>
+<header class="top">
+  <a class="brand" href="../index.html">408 数据结构</a>
+  <span class="muted">41 / 67</span>
+</header>
+<main class="wrap lesson">
+  <p class="crumb">查找</p>
+  <h1>红黑树 - 删除</h1>
+  <p>删黑结点会掉黑高，靠兄弟变色旋转补回</p>
+  <div class="stage-wrap"><canvas id="stage" width="960" height="360"></canvas></div>
+  <p id="note"></p>
+  <div class="controls">
+    <button id="prev" type="button">上一步</button>
+    <button id="play" type="button">播放</button>
+    <button id="next" type="button">下一步</button>
+    <span id="step" class="muted"></span>
+    <span class="muted">方向键也可切换</span>
+  </div>
+  <section class="panel">
+    <h2>要点</h2>
+    <ul><li>有两孩子先换后继，再删最多一孩子的结点</li><li>删红通常直接结束；删黑进入修复</li><li>兄弟红：先旋成黑兄弟再按黑兄弟情形处理</li><li>黑兄弟孩子全黑则染红上推；否则旋并把黑补到这边</li></ul>
+    <p class="muted">删除最好最坏平均 O(log n)；修复旋转次数有界；空间 O(n)</p>
+  </section>
+  <section class="panel">
+    <h2>完整 C++ 代码</h2>
+    <p><a href="../c/rbt-delete.cpp" download>下载 .cpp</a>
+    <button id="copy" type="button">复制</button></p>
+    <pre><code id="code">// Red-black tree delete: build same as insert, then delete 20, full fixup
+#include &lt;iostream&gt;
+using namespace std;
+
+enum Color { RED, BLACK };
+
+struct Node {
+    int key;
+    Color color;
+    Node* left;
+    Node* right;
+    Node* parent;
+    Node(int k) : key(k), color(RED), left(nullptr), right(nullptr), parent(nullptr) {}
+};
+
+bool isRed(Node* p) { return p &amp;&amp; p-&gt;color == RED; }
+bool isBlack(Node* p) { return !p || p-&gt;color == BLACK; }
+
+void rotateLeft(Node*&amp; root, Node* x) {
+    Node* y = x-&gt;right;
+    x-&gt;right = y-&gt;left;
+    if (y-&gt;left) y-&gt;left-&gt;parent = x;
+    y-&gt;parent = x-&gt;parent;
+    if (!x-&gt;parent) root = y;
+    else if (x == x-&gt;parent-&gt;left) x-&gt;parent-&gt;left = y;
+    else x-&gt;parent-&gt;right = y;
+    y-&gt;left = x;
+    x-&gt;parent = y;
+}
+
+void rotateRight(Node*&amp; root, Node* y) {
+    Node* x = y-&gt;left;
+    y-&gt;left = x-&gt;right;
+    if (x-&gt;right) x-&gt;right-&gt;parent = y;
+    x-&gt;parent = y-&gt;parent;
+    if (!y-&gt;parent) root = x;
+    else if (y == y-&gt;parent-&gt;left) y-&gt;parent-&gt;left = x;
+    else y-&gt;parent-&gt;right = x;
+    x-&gt;right = y;
+    y-&gt;parent = x;
+}
+
+void insertFix(Node*&amp; root, Node* z) {
+    while (isRed(z-&gt;parent)) {
+        Node* p = z-&gt;parent;
+        Node* g = p-&gt;parent;
+        if (p == g-&gt;left) {
+            Node* u = g-&gt;right;
+            if (isRed(u)) {
+                p-&gt;color = BLACK;
+                u-&gt;color = BLACK;
+                g-&gt;color = RED;
+                z = g;
+            } else {
+                if (z == p-&gt;right) {
+                    z = p;
+                    rotateLeft(root, z);
+                    p = z-&gt;parent;
+                    g = p-&gt;parent;
+                }
+                p-&gt;color = BLACK;
+                g-&gt;color = RED;
+                rotateRight(root, g);
+            }
+        } else {
+            Node* u = g-&gt;left;
+            if (isRed(u)) {
+                p-&gt;color = BLACK;
+                u-&gt;color = BLACK;
+                g-&gt;color = RED;
+                z = g;
+            } else {
+                if (z == p-&gt;left) {
+                    z = p;
+                    rotateRight(root, z);
+                    p = z-&gt;parent;
+                    g = p-&gt;parent;
+                }
+                p-&gt;color = BLACK;
+                g-&gt;color = RED;
+                rotateLeft(root, g);
+            }
+        }
+    }
+    root-&gt;color = BLACK;
+}
+
+void insertKey(Node*&amp; root, int key) {
+    Node* z = new Node(key);
+    Node* y = nullptr;
+    Node* x = root;
+    while (x) {
+        y = x;
+        if (key &lt; x-&gt;key) x = x-&gt;left;
+        else if (key &gt; x-&gt;key) x = x-&gt;right;
+        else {
+            delete z;
+            return;
+        }
+    }
+    z-&gt;parent = y;
+    if (!y) root = z;
+    else if (key &lt; y-&gt;key) y-&gt;left = z;
+    else y-&gt;right = z;
+    insertFix(root, z);
+}
+
+// delete fixup: covers sibling red, sibling black + both kids black,
+// near-red / far-red (black sibling) cases
+void deleteFix(Node*&amp; root, Node* x, Node* xp) {
+    while ((!x || x-&gt;color == BLACK) &amp;&amp; x != root) {
+        if (x == (xp ? xp-&gt;left : nullptr)) {
+            Node* w = xp-&gt;right;
+            if (!w) {
+                x = xp;
+                xp = x ? x-&gt;parent : nullptr;
+                continue;
+            }
+            if (isRed(w)) {
+                // sibling red -&gt; recolor + rotate, then sibling becomes black
+                w-&gt;color = BLACK;
+                xp-&gt;color = RED;
+                rotateLeft(root, xp);
+                w = xp-&gt;right;
+            }
+            if (isBlack(w-&gt;left) &amp;&amp; isBlack(w-&gt;right)) {
+                // sibling black, both children black
+                w-&gt;color = RED;
+                x = xp;
+                xp = x ? x-&gt;parent : nullptr;
+            } else {
+                if (isBlack(w-&gt;right)) {
+                    // near child red, far black
+                    if (w-&gt;left) w-&gt;left-&gt;color = BLACK;
+                    w-&gt;color = RED;
+                    rotateRight(root, w);
+                    w = xp-&gt;right;
+                }
+                // far child red
+                w-&gt;color = xp-&gt;color;
+                xp-&gt;color = BLACK;
+                if (w-&gt;right) w-&gt;right-&gt;color = BLACK;
+                rotateLeft(root, xp);
+                x = root;
+                xp = nullptr;
+            }
+        } else {
+            Node* w = xp-&gt;left;
+            if (!w) {
+                x = xp;
+                xp = x ? x-&gt;parent : nullptr;
+                continue;
+            }
+            if (isRed(w)) {
+                w-&gt;color = BLACK;
+                xp-&gt;color = RED;
+                rotateRight(root, xp);
+                w = xp-&gt;left;
+            }
+            if (isBlack(w-&gt;left) &amp;&amp; isBlack(w-&gt;right)) {
+                w-&gt;color = RED;
+                x = xp;
+                xp = x ? x-&gt;parent : nullptr;
+            } else {
+                if (isBlack(w-&gt;left)) {
+                    if (w-&gt;right) w-&gt;right-&gt;color = BLACK;
+                    w-&gt;color = RED;
+                    rotateLeft(root, w);
+                    w = xp-&gt;left;
+                }
+                w-&gt;color = xp-&gt;color;
+                xp-&gt;color = BLACK;
+                if (w-&gt;left) w-&gt;left-&gt;color = BLACK;
+                rotateRight(root, xp);
+                x = root;
+                xp = nullptr;
+            }
+        }
+    }
+    if (x) x-&gt;color = BLACK;
+}
+
+void transplant(Node*&amp; root, Node* u, Node* v) {
+    if (!u-&gt;parent) root = v;
+    else if (u == u-&gt;parent-&gt;left) u-&gt;parent-&gt;left = v;
+    else u-&gt;parent-&gt;right = v;
+    if (v) v-&gt;parent = u-&gt;parent;
+}
+
+Node* treeMin(Node* p) {
+    while (p-&gt;left) p = p-&gt;left;
+    return p;
+}
+
+void deleteKey(Node*&amp; root, int key) {
+    Node* z = root;
+    while (z &amp;&amp; z-&gt;key != key) {
+        if (key &lt; z-&gt;key) z = z-&gt;left;
+        else z = z-&gt;right;
+    }
+    if (!z) {
+        cout &lt;&lt; &quot;error\n&quot;;
+        return;
+    }
+    Node* y = z;
+    Color yOrig = y-&gt;color;
+    Node* x = nullptr;
+    Node* xp = nullptr;
+    if (!z-&gt;left) {
+        x = z-&gt;right;
+        xp = z-&gt;parent;
+        transplant(root, z, z-&gt;right);
+    } else if (!z-&gt;right) {
+        x = z-&gt;left;
+        xp = z-&gt;parent;
+        transplant(root, z, z-&gt;left);
+    } else {
+        y = treeMin(z-&gt;right);
+        yOrig = y-&gt;color;
+        x = y-&gt;right;
+        if (y-&gt;parent == z) {
+            xp = y;
+            if (x) x-&gt;parent = y;
+        } else {
+            xp = y-&gt;parent;
+            transplant(root, y, y-&gt;right);
+            y-&gt;right = z-&gt;right;
+            if (y-&gt;right) y-&gt;right-&gt;parent = y;
+        }
+        transplant(root, z, y);
+        y-&gt;left = z-&gt;left;
+        if (y-&gt;left) y-&gt;left-&gt;parent = y;
+        y-&gt;color = z-&gt;color;
+    }
+    delete z;
+    if (yOrig == BLACK) deleteFix(root, x, xp);
+}
+
+void inorder(Node* p) {
+    if (!p) return;
+    inorder(p-&gt;left);
+    cout &lt;&lt; p-&gt;key &lt;&lt; (p-&gt;color == RED ? &quot;R&quot; : &quot;B&quot;) &lt;&lt; &quot; &quot;;
+    inorder(p-&gt;right);
+}
+
+bool noAdjRed(Node* p) {
+    if (!p) return true;
+    if (isRed(p) &amp;&amp; (isRed(p-&gt;left) || isRed(p-&gt;right))) return false;
+    return noAdjRed(p-&gt;left) &amp;&amp; noAdjRed(p-&gt;right);
+}
+
+int blackHeight(Node* p, bool&amp; ok) {
+    if (!p) return 1;
+    int L = blackHeight(p-&gt;left, ok);
+    int R = blackHeight(p-&gt;right, ok);
+    if (L != R) ok = false;
+    return L + (p-&gt;color == BLACK ? 1 : 0);
+}
+
+bool checkRB(Node* r) {
+    if (!r) return true;
+    if (r-&gt;color != BLACK) return false;
+    if (!noAdjRed(r)) return false;
+    bool ok = true;
+    blackHeight(r, ok);
+    return ok;
+}
+
+void freeTree(Node* p) {
+    if (!p) return;
+    freeTree(p-&gt;left);
+    freeTree(p-&gt;right);
+    delete p;
+}
+
+int main() {
+    Node* root = nullptr;
+    int a[] = {10, 20, 30, 15, 25};
+    for (int k : a) insertKey(root, k);
+
+    cout &lt;&lt; &quot;before: &quot;;
+    inorder(root);
+    cout &lt;&lt; &quot;\n&quot;;
+
+    deleteKey(root, 20);
+
+    cout &lt;&lt; &quot;after del 20: &quot;;
+    inorder(root);
+    cout &lt;&lt; &quot;\n&quot;;
+    cout &lt;&lt; (checkRB(root) ? &quot;OK\n&quot; : &quot;BAD\n&quot;);
+
+    freeTree(root);
+    return 0;
+}
+</code></pre>
+  </section>
+  <nav class="pager"><a href="rbt-insert.html">上一节<br>红黑树 - 定义, 插入, 构建</a><a href="b-insert.html">下一节<br>B树(B-树) - 来由, 定义, 插入, 构建</a></nav>
+</main>
+<script>window.LESSON_ANIM={"kind":"graph","frames":[{"note":"同插入后的树：删前先看 20B 根","nodes":[{"id":"b","v":"20B","x":0.5,"y":0.18},{"id":"a","v":"10B","x":0.25,"y":0.42},{"id":"c","v":"30B","x":0.75,"y":0.42},{"id":"d","v":"15R","x":0.38,"y":0.68},{"id":"e","v":"25R","x":0.62,"y":0.68}],"edges":[{"u":"b","v":"a","dir":true},{"u":"b","v":"c","dir":true},{"u":"a","v":"d","dir":true},{"u":"c","v":"e","dir":true}],"hl":["b"]},{"note":"20 有两孩子，后继是右子树最小的 25","nodes":[{"id":"b","v":"20B","x":0.5,"y":0.18},{"id":"a","v":"10B","x":0.25,"y":0.42},{"id":"c","v":"30B","x":0.75,"y":0.42},{"id":"d","v":"15R","x":0.38,"y":0.68},{"id":"e","v":"25R","x":0.62,"y":0.68}],"edges":[{"u":"b","v":"a","dir":true},{"u":"b","v":"c","dir":true},{"u":"a","v":"d","dir":true},{"u":"c","v":"e","dir":true,"hl":true}],"hl":["e"]},{"note":"关键字换成 25，原 25 结点待摘掉","nodes":[{"id":"b","v":"25B","x":0.5,"y":0.18},{"id":"a","v":"10B","x":0.25,"y":0.42},{"id":"c","v":"30B","x":0.75,"y":0.42},{"id":"d","v":"15R","x":0.38,"y":0.68},{"id":"e","v":"25R","x":0.62,"y":0.68}],"edges":[{"u":"b","v":"a","dir":true},{"u":"b","v":"c","dir":true},{"u":"a","v":"d","dir":true},{"u":"c","v":"e","dir":true}],"hl":["b","e"]},{"note":"摘掉红叶 25：删红不掉黑高，修复可直接结束","nodes":[{"id":"b","v":"25B","x":0.5,"y":0.22},{"id":"a","v":"10B","x":0.28,"y":0.5},{"id":"c","v":"30B","x":0.72,"y":0.5},{"id":"d","v":"15R","x":0.4,"y":0.75}],"edges":[{"u":"b","v":"a","dir":true},{"u":"b","v":"c","dir":true},{"u":"a","v":"d","dir":true}],"hl":["c"]},{"note":"若删的是黑：兄弟红则先旋成黑兄弟","nodes":[{"id":"b","v":"25B","x":0.5,"y":0.22},{"id":"a","v":"10B","x":0.28,"y":0.5},{"id":"c","v":"30B","x":0.72,"y":0.5},{"id":"d","v":"15R","x":0.4,"y":0.75}],"edges":[{"u":"b","v":"a","dir":true},{"u":"b","v":"c","dir":true},{"u":"a","v":"d","dir":true}],"hl":["a"]},{"note":"黑兄弟两孩都黑：兄弟染红，双黑上推到父","nodes":[{"id":"b","v":"25B","x":0.5,"y":0.22},{"id":"a","v":"10B","x":0.28,"y":0.5},{"id":"c","v":"30B","x":0.72,"y":0.5},{"id":"d","v":"15R","x":0.4,"y":0.75}],"edges":[{"u":"b","v":"a","dir":true},{"u":"b","v":"c","dir":true},{"u":"a","v":"d","dir":true}],"hl":["b"]},{"note":"黑兄弟远侄红：旋并把黑补给缺口一侧","nodes":[{"id":"b","v":"25B","x":0.5,"y":0.22},{"id":"a","v":"10B","x":0.28,"y":0.5},{"id":"c","v":"30B","x":0.72,"y":0.5},{"id":"d","v":"15R","x":0.4,"y":0.75}],"edges":[{"u":"b","v":"a","dir":true},{"u":"b","v":"c","dir":true},{"u":"a","v":"d","dir":true}],"hl":["d"]},{"note":"删后仍：根黑、无连续红、黑高一致","nodes":[{"id":"b","v":"25B","x":0.5,"y":0.22},{"id":"a","v":"10B","x":0.28,"y":0.5},{"id":"c","v":"30B","x":0.72,"y":0.5},{"id":"d","v":"15R","x":0.4,"y":0.75}],"edges":[{"u":"b","v":"a","dir":true},{"u":"b","v":"c","dir":true},{"u":"a","v":"d","dir":true}],"hl":[]},{"note":"中序 10 15 25 30，检查打印 OK","nodes":[{"id":"b","v":"25B","x":0.5,"y":0.22},{"id":"a","v":"10B","x":0.28,"y":0.5},{"id":"c","v":"30B","x":0.72,"y":0.5},{"id":"d","v":"15R","x":0.4,"y":0.75}],"edges":[{"u":"b","v":"a","dir":true},{"u":"b","v":"c","dir":true},{"u":"a","v":"d","dir":true}],"hl":["a","d","b","c"]}]};</script>
+<script src="../assets/js/anim.js"></script>
+</body>
+</html>

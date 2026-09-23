@@ -1,0 +1,10 @@
+{
+  "blurb": "最小生成树用 n-1 条边连通且权最小",
+  "points": [
+    "Prim 从点生长：每次加最短切边",
+    "Kruskal 按边权排序，不成环才加入",
+    "同图总权均为 8：如 AB+BC+CD+DE",
+    "切边/并查集是两种贪心视角"
+  ],
+  "complexity": "Prim 邻接矩阵 O(n^2)；Kruskal 排序 O(m log m)+并查集近似 O(m)"
+}

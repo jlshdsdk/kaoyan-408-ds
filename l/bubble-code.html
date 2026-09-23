@@ -1,0 +1,91 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>冒泡排序及其改进代码(C/C++实现)</title>
+<link rel="stylesheet" href="../assets/css/site.css">
+<link rel="icon" href="data:,">
+</head>
+<body>
+<header class="top">
+  <a class="brand" href="../index.html">408 数据结构</a>
+  <span class="muted">53 / 67</span>
+</header>
+<main class="wrap lesson">
+  <p class="crumb">排序</p>
+  <h1>冒泡排序及其改进代码(C/C++实现)</h1>
+  <p>冒泡加标志：无交换则提前停</p>
+  <div class="stage-wrap"><canvas id="stage" width="960" height="360"></canvas></div>
+  <p id="note"></p>
+  <div class="controls">
+    <button id="prev" type="button">上一步</button>
+    <button id="play" type="button">播放</button>
+    <button id="next" type="button">下一步</button>
+    <span id="step" class="muted"></span>
+    <span class="muted">方向键也可切换</span>
+  </div>
+  <section class="panel">
+    <h2>要点</h2>
+    <ul><li>基本冒泡：相邻逆序交换，大的沉底</li><li>改进：每趟设 swapped，无交换说明已有序</li><li>打印每趟结果及是否提前结束</li><li>相等不交换，稳定；最好可到 O(n)</li></ul>
+    <p class="muted">时间最好 O(n)（已有序提前停）、最坏/平均 O(n^2)；空间 O(1)；稳定</p>
+  </section>
+  <section class="panel">
+    <h2>完整 C++ 代码</h2>
+    <p><a href="../c/bubble-code.cpp" download>下载 .cpp</a>
+    <button id="copy" type="button">复制</button></p>
+    <pre><code id="code">// 冒泡排序及其改进：某趟无交换则提前结束
+#include &lt;iostream&gt;
+using namespace std;
+
+void print_arr(const int a[], int n) {
+    for (int i = 0; i &lt; n; i++) {
+        if (i) cout &lt;&lt; &quot; &quot;;
+        cout &lt;&lt; a[i];
+    }
+    cout &lt;&lt; &quot;\n&quot;;
+}
+
+void bubble_sort(int a[], int n) {
+    if (n &lt;= 0) {
+        cout &lt;&lt; &quot;error\n&quot;;
+        return;
+    }
+    cout &lt;&lt; &quot;init: &quot;;
+    print_arr(a, n);
+    for (int i = 0; i &lt; n - 1; i++) {
+        bool swapped = false;
+        for (int j = 0; j &lt; n - 1 - i; j++) {
+            if (a[j] &gt; a[j + 1]) {
+                int t = a[j];
+                a[j] = a[j + 1];
+                a[j + 1] = t;
+                swapped = true;
+            }
+        }
+        cout &lt;&lt; &quot;pass &quot; &lt;&lt; (i + 1) &lt;&lt; &quot;: &quot;;
+        print_arr(a, n);
+        if (!swapped) {
+            cout &lt;&lt; &quot;early stop at pass &quot; &lt;&lt; (i + 1) &lt;&lt; &quot;\n&quot;;
+            return;
+        }
+        cout &lt;&lt; &quot;swapped=1, continue\n&quot;;
+    }
+}
+
+int main() {
+    int a[] = {5, 2, 8, 1, 9, 3};
+    int n = 6;
+    bubble_sort(a, n);
+    cout &lt;&lt; &quot;result: &quot;;
+    print_arr(a, n);
+    return 0;
+}
+</code></pre>
+  </section>
+  <nav class="pager"><a href="bubble-idea.html">上一节<br>冒泡排序</a><a href="bubble-bi.html">下一节<br>双向冒泡排序代码(C/C++实现)</a></nav>
+</main>
+<script>window.LESSON_ANIM={"kind":"bars","frames":[{"note":"init: 5 2 8 1 9 3","vals":[5,2,8,1,9,3],"hl":[]},{"note":"pass1：交换进行中，9 将沉底","vals":[2,5,1,8,3,9],"hl":[4,5],"done":[5]},{"note":"pass1 后 swapped=1，继续","vals":[2,5,1,8,3,9],"hl":[],"done":[5]},{"note":"pass2：继续冒泡，8 就位","vals":[2,1,5,3,8,9],"hl":[3,4],"done":[4,5]},{"note":"pass2 后 swapped=1，继续","vals":[2,1,5,3,8,9],"hl":[],"done":[4,5]},{"note":"pass3：1 与 2、5 与 3 交换","vals":[1,2,3,5,8,9],"hl":[0,1],"done":[3,4,5]},{"note":"pass3 后：1 2 3 5 8 9","vals":[1,2,3,5,8,9],"hl":[],"done":[3,4,5]},{"note":"pass4：扫描无交换","vals":[1,2,3,5,8,9],"hl":[0,1,2],"done":[3,4,5]},{"note":"early stop at pass 4","vals":[1,2,3,5,8,9],"hl":[],"done":[0,1,2,3,4,5]},{"note":"result: 1 2 3 5 8 9","vals":[1,2,3,5,8,9],"hl":[],"done":[0,1,2,3,4,5]}]};</script>
+<script src="../assets/js/anim.js"></script>
+</body>
+</html>

@@ -1,0 +1,81 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>最短路径-Floyd(弗洛伊德)算法</title>
+<link rel="stylesheet" href="../assets/css/site.css">
+<link rel="icon" href="data:,">
+</head>
+<body>
+<header class="top">
+  <a class="brand" href="../index.html">408 数据结构</a>
+  <span class="muted">27 / 67</span>
+</header>
+<main class="wrap lesson">
+  <p class="crumb">图</p>
+  <h1>最短路径-Floyd(弗洛伊德)算法</h1>
+  <p>允许经过中转点 k，三重循环松弛</p>
+  <div class="stage-wrap"><canvas id="stage" width="960" height="360"></canvas></div>
+  <p id="note"></p>
+  <div class="controls">
+    <button id="prev" type="button">上一步</button>
+    <button id="play" type="button">播放</button>
+    <button id="next" type="button">下一步</button>
+    <span id="step" class="muted"></span>
+    <span class="muted">方向键也可切换</span>
+  </div>
+  <section class="panel">
+    <h2>要点</h2>
+    <ul><li>外层 k 表示允许用的最高编号中转点</li><li>对每对 i,j 试 d[i][k]+d[k][j]</li><li>适合求全源最短路，允许负权但禁负环</li><li>本例 0 到 3 最终为 6</li></ul>
+    <p class="muted">时间 O(V^3)；空间 O(V^2)；与边数无关</p>
+  </section>
+  <section class="panel">
+    <h2>完整 C++ 代码</h2>
+    <p><a href="../c/floyd-idea.cpp" download>下载 .cpp</a>
+    <button id="copy" type="button">复制</button></p>
+    <pre><code id="code">// Floyd 思想：三重循环 k,i,j 松弛
+#include &lt;iostream&gt;
+using namespace std;
+
+const int N = 4;
+const int INF = 1e9;
+
+int main() {
+    // edges 0-&gt;1:3 0-&gt;2:8 1-&gt;2:2 1-&gt;3:5 2-&gt;3:1
+    int d[N][N];
+    for (int i = 0; i &lt; N; i++) {
+        for (int j = 0; j &lt; N; j++) d[i][j] = (i == j) ? 0 : INF;
+    }
+    d[0][1] = 3;
+    d[0][2] = 8;
+    d[1][2] = 2;
+    d[1][3] = 5;
+    d[2][3] = 1;
+
+    cout &lt;&lt; &quot;init d[0][3]=&quot;;
+    if (d[0][3] &gt;= INF) cout &lt;&lt; &quot;INF\n&quot;;
+    else cout &lt;&lt; d[0][3] &lt;&lt; &quot;\n&quot;;
+
+    for (int k = 0; k &lt; N; k++) {
+        for (int i = 0; i &lt; N; i++) {
+            for (int j = 0; j &lt; N; j++) {
+                if (d[i][k] &lt; INF &amp;&amp; d[k][j] &lt; INF &amp;&amp;
+                    d[i][k] + d[k][j] &lt; d[i][j]) {
+                    d[i][j] = d[i][k] + d[k][j];
+                }
+            }
+        }
+        cout &lt;&lt; &quot;after k=&quot; &lt;&lt; k &lt;&lt; &quot; d[0][3]=&quot; &lt;&lt; d[0][3] &lt;&lt; &quot;\n&quot;;
+    }
+    cout &lt;&lt; &quot;path 0-1-2-3 = 3+2+1 = &quot; &lt;&lt; d[0][3] &lt;&lt; &quot;\n&quot;;
+    return 0;
+}
+</code></pre>
+  </section>
+  <nav class="pager"><a href="dijkstra-code.html">上一节<br>最短路径-Dijkstra(迪杰斯特拉)算法代码(C/C++实现)</a><a href="floyd-code.html">下一节<br>最短路径-Floyd(弗洛伊德)算法代码(C/C++实现)</a></nav>
+</main>
+<script>window.LESSON_ANIM={"kind":"graph","frames":[{"note":"四点有向带权，0 到 3 初值 INF","nodes":[{"id":"0","v":"0","x":0.12,"y":0.35},{"id":"1","v":"1","x":0.38,"y":0.15},{"id":"2","v":"2","x":0.38,"y":0.6},{"id":"3","v":"3","x":0.78,"y":0.35}],"edges":[{"u":"0","v":"1","w":"3"},{"u":"0","v":"2","w":"8"},{"u":"1","v":"2","w":"2"},{"u":"1","v":"3","w":"5"},{"u":"2","v":"3","w":"1"}],"hl":[]},{"note":"k=0：经 0 中转，几乎无新捷径","nodes":[{"id":"0","v":"0","x":0.12,"y":0.35},{"id":"1","v":"1","x":0.38,"y":0.15},{"id":"2","v":"2","x":0.38,"y":0.6},{"id":"3","v":"3","x":0.78,"y":0.35}],"edges":[{"u":"0","v":"1","w":"3"},{"u":"0","v":"2","w":"8"},{"u":"1","v":"2","w":"2"},{"u":"1","v":"3","w":"5"},{"u":"2","v":"3","w":"1"}],"hl":["0"]},{"note":"k=1：0→2 经 1 变为 3+2=5","nodes":[{"id":"0","v":"0","x":0.12,"y":0.35},{"id":"1","v":"1","x":0.38,"y":0.15},{"id":"2","v":"2","x":0.38,"y":0.6},{"id":"3","v":"3","x":0.78,"y":0.35}],"edges":[{"u":"0","v":"1","w":"3","hl":true},{"u":"1","v":"2","w":"2","hl":true},{"u":"0","v":"2","w":"8"},{"u":"1","v":"3","w":"5"},{"u":"2","v":"3","w":"1"}],"hl":["0","1","2"]},{"note":"同时 0→3 经 1 得 3+5=8","nodes":[{"id":"0","v":"0","x":0.12,"y":0.35},{"id":"1","v":"1","x":0.38,"y":0.15},{"id":"2","v":"2","x":0.38,"y":0.6},{"id":"3","v":"3","x":0.78,"y":0.35}],"edges":[{"u":"0","v":"1","w":"3","hl":true},{"u":"1","v":"3","w":"5","hl":true},{"u":"1","v":"2","w":"2"},{"u":"0","v":"2","w":"5"},{"u":"2","v":"3","w":"1"}],"hl":["0","1","3"]},{"note":"k=2：0→3 经 2 变为 5+1=6","nodes":[{"id":"0","v":"0","x":0.12,"y":0.35},{"id":"1","v":"1","x":0.38,"y":0.15},{"id":"2","v":"2","x":0.38,"y":0.6},{"id":"3","v":"3","x":0.78,"y":0.35}],"edges":[{"u":"0","v":"1","w":"3","hl":true},{"u":"1","v":"2","w":"2","hl":true},{"u":"2","v":"3","w":"1","hl":true},{"u":"1","v":"3","w":"5"}],"hl":["0","1","2","3"]},{"note":"路径 0-1-2-3：3+2+1=6","nodes":[{"id":"0","v":"0","x":0.12,"y":0.35},{"id":"1","v":"1","x":0.38,"y":0.15},{"id":"2","v":"2","x":0.38,"y":0.6},{"id":"3","v":"3","x":0.78,"y":0.35}],"edges":[{"u":"0","v":"1","w":"3","hl":true},{"u":"1","v":"2","w":"2","hl":true},{"u":"2","v":"3","w":"1","hl":true}],"hl":["0","1","2","3"]},{"note":"k=3：再无更短，矩阵稳定","nodes":[{"id":"0","v":"0","x":0.12,"y":0.35},{"id":"1","v":"1","x":0.38,"y":0.15},{"id":"2","v":"2","x":0.38,"y":0.6},{"id":"3","v":"3","x":0.78,"y":0.35}],"edges":[{"u":"0","v":"1","w":"3","hl":true},{"u":"1","v":"2","w":"2","hl":true},{"u":"2","v":"3","w":"1","hl":true}],"hl":["3"]},{"note":"看对角与三重循环：先定中转再扫点对","nodes":[{"id":"0","v":"0","x":0.12,"y":0.35},{"id":"1","v":"1","x":0.38,"y":0.15},{"id":"2","v":"2","x":0.38,"y":0.6},{"id":"3","v":"3","x":0.78,"y":0.35}],"edges":[{"u":"0","v":"1","w":"3","hl":true},{"u":"1","v":"2","w":"2","hl":true},{"u":"2","v":"3","w":"1","hl":true}],"hl":["0","1","2","3"]}]};</script>
+<script src="../assets/js/anim.js"></script>
+</body>
+</html>

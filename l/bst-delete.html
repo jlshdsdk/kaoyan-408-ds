@@ -1,0 +1,154 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>二叉搜索树代码 - 删除(C/C++实现)</title>
+<link rel="stylesheet" href="../assets/css/site.css">
+<link rel="icon" href="data:,">
+</head>
+<body>
+<header class="top">
+  <a class="brand" href="../index.html">408 数据结构</a>
+  <span class="muted">37 / 67</span>
+</header>
+<main class="wrap lesson">
+  <p class="crumb">查找</p>
+  <h1>二叉搜索树代码 - 删除(C/C++实现)</h1>
+  <p>删除分叶子、单孩子、双孩子三种</p>
+  <div class="stage-wrap"><canvas id="stage" width="960" height="360"></canvas></div>
+  <p id="note"></p>
+  <div class="controls">
+    <button id="prev" type="button">上一步</button>
+    <button id="play" type="button">播放</button>
+    <button id="next" type="button">下一步</button>
+    <span id="step" class="muted"></span>
+    <span class="muted">方向键也可切换</span>
+  </div>
+  <section class="panel">
+    <h2>要点</h2>
+    <ul><li>叶子：直接摘掉，父指针置空</li><li>单孩子：用仅有的孩子顶替自己</li><li>双孩子：用中序后继（或前驱）覆盖再删后继</li><li>删完后中序仍保持升序</li></ul>
+    <p class="muted">删除平均O(log n)、最坏O(n)；找后继最坏O(h)；空间递归O(h)</p>
+  </section>
+  <section class="panel">
+    <h2>完整 C++ 代码</h2>
+    <p><a href="../c/bst-delete.cpp" download>下载 .cpp</a>
+    <button id="copy" type="button">复制</button></p>
+    <pre><code id="code">// 二叉搜索树删除：叶子 / 单孩子 / 双孩子（中序后继）
+#include &lt;iostream&gt;
+using namespace std;
+
+struct Node {
+    int key;
+    Node* left;
+    Node* right;
+};
+
+Node* insert(Node* p, int key) {
+    if (!p) return new Node{key, nullptr, nullptr};
+    if (key &lt; p-&gt;key) p-&gt;left = insert(p-&gt;left, key);
+    else if (key &gt; p-&gt;key) p-&gt;right = insert(p-&gt;right, key);
+    return p;
+}
+
+void inorder(Node* p) {
+    if (!p) return;
+    inorder(p-&gt;left);
+    cout &lt;&lt; p-&gt;key &lt;&lt; &quot; &quot;;
+    inorder(p-&gt;right);
+}
+
+// 找右子树最小（中序后继）
+Node* minNode(Node* p) {
+    while (p &amp;&amp; p-&gt;left) p = p-&gt;left;
+    return p;
+}
+
+Node* remove(Node* p, int key) {
+    if (!p) {
+        cout &lt;&lt; &quot;delete &quot; &lt;&lt; key &lt;&lt; &quot;: not found\n&quot;;
+        return nullptr;
+    }
+    if (key &lt; p-&gt;key) {
+        p-&gt;left = remove(p-&gt;left, key);
+    } else if (key &gt; p-&gt;key) {
+        p-&gt;right = remove(p-&gt;right, key);
+    } else {
+        // 情况1：叶子（左右皆空）
+        if (!p-&gt;left &amp;&amp; !p-&gt;right) {
+            cout &lt;&lt; &quot;delete &quot; &lt;&lt; key &lt;&lt; &quot;: leaf\n&quot;;
+            delete p;
+            return nullptr;
+        }
+        // 情况2：只有右孩子
+        if (!p-&gt;left &amp;&amp; p-&gt;right) {
+            cout &lt;&lt; &quot;delete &quot; &lt;&lt; key &lt;&lt; &quot;: only right child\n&quot;;
+            Node* r = p-&gt;right;
+            delete p;
+            return r;
+        }
+        // 情况2b：只有左孩子
+        if (p-&gt;left &amp;&amp; !p-&gt;right) {
+            cout &lt;&lt; &quot;delete &quot; &lt;&lt; key &lt;&lt; &quot;: only left child\n&quot;;
+            Node* l = p-&gt;left;
+            delete p;
+            return l;
+        }
+        // 情况3：两个孩子，用中序后继顶上
+        Node* succ = minNode(p-&gt;right);
+        cout &lt;&lt; &quot;delete &quot; &lt;&lt; key &lt;&lt; &quot;: two children, successor=&quot;
+             &lt;&lt; succ-&gt;key &lt;&lt; &quot;\n&quot;;
+        p-&gt;key = succ-&gt;key;
+        p-&gt;right = remove(p-&gt;right, succ-&gt;key);
+    }
+    return p;
+}
+
+void freeTree(Node* p) {
+    if (!p) return;
+    freeTree(p-&gt;left);
+    freeTree(p-&gt;right);
+    delete p;
+}
+
+int main() {
+    int seq[] = {8, 3, 10, 1, 6, 14, 4};
+    Node* root = nullptr;
+    for (int x : seq) root = insert(root, x);
+
+    cout &lt;&lt; &quot;init inorder: &quot;;
+    inorder(root);
+    cout &lt;&lt; &quot;\n&quot;;
+
+    // 删叶子 1
+    root = remove(root, 1);
+    cout &lt;&lt; &quot;after del 1: &quot;;
+    inorder(root);
+    cout &lt;&lt; &quot;\n&quot;;
+
+    // 删只有右孩子的 14
+    root = remove(root, 14);
+    cout &lt;&lt; &quot;after del 14: &quot;;
+    inorder(root);
+    cout &lt;&lt; &quot;\n&quot;;
+
+    // 删有两个孩子的 3（后继为 4）
+    root = remove(root, 3);
+    cout &lt;&lt; &quot;after del 3: &quot;;
+    inorder(root);
+    cout &lt;&lt; &quot;\n&quot;;
+
+    // 删不存在
+    root = remove(root, 99);
+
+    freeTree(root);
+    return 0;
+}
+</code></pre>
+  </section>
+  <nav class="pager"><a href="bst-build.html">上一节<br>二叉搜索树代码 - 查找, 插入, 构建(C/C++实现)</a><a href="bst-check.html">下一节<br>判断是否为二叉搜索树(二叉排序树)代码(C/C++实现)</a></nav>
+</main>
+<script>window.LESSON_ANIM={"kind":"graph","frames":[{"note":"初始树：8 3 10 1 6 14 4","nodes":[{"id":"8","v":"8","x":0.5,"y":0.08},{"id":"3","v":"3","x":0.28,"y":0.32},{"id":"10","v":"10","x":0.72,"y":0.32},{"id":"1","v":"1","x":0.14,"y":0.56},{"id":"6","v":"6","x":0.4,"y":0.56},{"id":"14","v":"14","x":0.86,"y":0.56},{"id":"4","v":"4","x":0.32,"y":0.82}],"edges":[{"u":"8","v":"3"},{"u":"8","v":"10"},{"u":"3","v":"1"},{"u":"3","v":"6"},{"u":"10","v":"14"},{"u":"6","v":"4"}],"hl":[]},{"note":"第一次：删叶子 1","nodes":[{"id":"8","v":"8","x":0.5,"y":0.08},{"id":"3","v":"3","x":0.28,"y":0.32},{"id":"10","v":"10","x":0.72,"y":0.32},{"id":"1","v":"1","x":0.14,"y":0.56},{"id":"6","v":"6","x":0.4,"y":0.56},{"id":"14","v":"14","x":0.86,"y":0.56},{"id":"4","v":"4","x":0.32,"y":0.82}],"edges":[{"u":"8","v":"3"},{"u":"8","v":"10"},{"u":"3","v":"1"},{"u":"3","v":"6"},{"u":"10","v":"14"},{"u":"6","v":"4"}],"hl":["1"]},{"note":"1 摘掉后，3 的左孩子为空","nodes":[{"id":"8","v":"8","x":0.5,"y":0.08},{"id":"3","v":"3","x":0.28,"y":0.32},{"id":"10","v":"10","x":0.72,"y":0.32},{"id":"6","v":"6","x":0.4,"y":0.56},{"id":"14","v":"14","x":0.86,"y":0.56},{"id":"4","v":"4","x":0.32,"y":0.82}],"edges":[{"u":"8","v":"3"},{"u":"8","v":"10"},{"u":"3","v":"6"},{"u":"10","v":"14"},{"u":"6","v":"4"}],"hl":["3"]},{"note":"第二次：删 14（10 的右孩子，14 自身无孩子）","nodes":[{"id":"8","v":"8","x":0.5,"y":0.08},{"id":"3","v":"3","x":0.28,"y":0.32},{"id":"10","v":"10","x":0.72,"y":0.32},{"id":"6","v":"6","x":0.4,"y":0.56},{"id":"14","v":"14","x":0.86,"y":0.56},{"id":"4","v":"4","x":0.32,"y":0.82}],"edges":[{"u":"8","v":"3"},{"u":"8","v":"10"},{"u":"3","v":"6"},{"u":"10","v":"14"},{"u":"6","v":"4"}],"hl":["14"]},{"note":"14 删掉，10 右空；代码含单右孩子分支","nodes":[{"id":"8","v":"8","x":0.5,"y":0.1},{"id":"3","v":"3","x":0.3,"y":0.38},{"id":"10","v":"10","x":0.72,"y":0.38},{"id":"6","v":"6","x":0.42,"y":0.62},{"id":"4","v":"4","x":0.3,"y":0.86}],"edges":[{"u":"8","v":"3"},{"u":"8","v":"10"},{"u":"3","v":"6"},{"u":"6","v":"4"}],"hl":["10"]},{"note":"第三次：删双孩子 3，后继=右子树最小 4","nodes":[{"id":"8","v":"8","x":0.5,"y":0.1},{"id":"3","v":"3","x":0.3,"y":0.38},{"id":"10","v":"10","x":0.72,"y":0.38},{"id":"6","v":"6","x":0.42,"y":0.62},{"id":"4","v":"4","x":0.3,"y":0.86}],"edges":[{"u":"8","v":"3"},{"u":"8","v":"10"},{"u":"3","v":"6"},{"u":"6","v":"4"}],"hl":["3","4"]},{"note":"把 4 的值写到原 3 的位置","nodes":[{"id":"8","v":"8","x":0.5,"y":0.1},{"id":"4","v":"4","x":0.3,"y":0.38},{"id":"10","v":"10","x":0.72,"y":0.38},{"id":"6","v":"6","x":0.42,"y":0.62},{"id":"4old","v":"4","x":0.3,"y":0.86}],"edges":[{"u":"8","v":"4"},{"u":"8","v":"10"},{"u":"4","v":"6"},{"u":"6","v":"4old"}],"hl":["4","4old"]},{"note":"再删掉原来的叶子后继 4","nodes":[{"id":"8","v":"8","x":0.5,"y":0.12},{"id":"4","v":"4","x":0.3,"y":0.4},{"id":"10","v":"10","x":0.72,"y":0.4},{"id":"6","v":"6","x":0.42,"y":0.7}],"edges":[{"u":"8","v":"4"},{"u":"8","v":"10"},{"u":"4","v":"6"}],"hl":["6"]},{"note":"删 3 后中序：4 6 8 10","nodes":[{"id":"8","v":"8","x":0.5,"y":0.12},{"id":"4","v":"4","x":0.3,"y":0.4},{"id":"10","v":"10","x":0.72,"y":0.4},{"id":"6","v":"6","x":0.42,"y":0.7}],"edges":[{"u":"8","v":"4"},{"u":"8","v":"10"},{"u":"4","v":"6"}],"hl":["4","6","8","10"]}]};</script>
+<script src="../assets/js/anim.js"></script>
+</body>
+</html>
